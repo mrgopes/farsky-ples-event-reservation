@@ -16,7 +16,9 @@ return new class extends Migration
             $table->timestamps();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->integer('seats_total');
-            $table->integer('title');
+            $table->string('title');
+
+            $table->string('url_slug')->unique();
 
             $table->dateTime('start_time');
             $table->dateTime('registration_start');
