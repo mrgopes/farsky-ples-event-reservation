@@ -24,6 +24,8 @@ return new class extends Migration
             $table->dateTime('registration_start');
             $table->dateTime('registration_end');
 
+            $table->string('location');
+
             // Todo: possibly variable symbol etc. later
         });
     }

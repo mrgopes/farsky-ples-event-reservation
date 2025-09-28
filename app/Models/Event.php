@@ -19,6 +19,7 @@ class Event extends Model
         'registration_start',
         'registration_end',
         'url_slug',
+        'location',
     ];
 
     public function user(): BelongsTo

@@ -20,6 +20,7 @@ class EventFactory extends Factory
             'registration_start' => $this->faker->dateTimeBetween('-1 week', 'now'),
             'registration_end' => $this->faker->dateTimeBetween('now', '+5 days'),
             'url_slug' => $this->faker->unique()->slug,
+            'location' => $this->faker->address(),
         ];
     }
 }

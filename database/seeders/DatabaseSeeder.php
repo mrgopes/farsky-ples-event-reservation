@@ -17,6 +17,11 @@ class DatabaseSeeder extends Seeder
             'email' => 'admin@example.com',
         ]);
 
-        \App\Models\Event::factory()->count(10)->create();
+        $events = \App\Models\Event::factory()->count(10)->create();
+        $events->each(function ($event) {
+            \App\Models\Ticket::factory()->count(rand(0, 3))->create([
+                'event_id' => $event->id,
+            ]);
+        });
     }
 }

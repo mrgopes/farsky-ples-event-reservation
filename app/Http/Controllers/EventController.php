@@ -10,9 +10,12 @@ class EventController extends Controller
 {
     public function show($url_slug)
     {
-        $event = Event::where('url_slug', $url_slug)->firstOrFail();
+        $event = Event::where('url_slug', $url_slug)
+            ->with('tickets')
+            ->firstOrFail();
         return Inertia::render('event/Show', [
             'event' => $event,
+            'tickets' => $event->tickets,
         ]);
     }
 }
