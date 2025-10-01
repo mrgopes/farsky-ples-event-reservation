@@ -9,6 +9,7 @@ import { Form } from '@inertiajs/vue3';
 import { computed, reactive, ref, watch } from 'vue';
 import { Card, CardContent } from '@/components/ui/card';
 import SeatSelector from '@/components/order/SeatSelector.vue';
+import { Alert, AlertTitle } from '@/components/ui/alert';
 
 // import { create } from '@/routes/reservation';
 
@@ -34,6 +35,9 @@ const props = defineProps<{ event: Event; tickets: Ticket[] }>();
 const filteredTickets = computed(() =>
     props.tickets.filter(ticket => quantities[ticket.id] > 0)
 );
+
+const readableErrors = ref<string[]>([]);
+const errors = ref<{ [key: string]: string }>({});
 
 const orderForm = reactive({
     name: '',
@@ -96,6 +100,10 @@ const stepLabels = [
 ];
 
 function nextStep() {
+    if (currentStep.value === 1 && !validateStepOne()) {
+        return;
+    }
+    readableErrors.value = [];
     if (currentStep.value < 4) currentStep.value++;
 }
 
@@ -117,6 +125,49 @@ watch(selectedSeats, (seats) => {
         guestNames.value.pop();
     }
 });
+
+const allTicketsZero = computed(() =>
+    Object.values(quantities).every(qty => qty === 0)
+);
+
+const validateStepOne = () => {
+    readableErrors.value = [];
+    errors.value = {};
+    let hasError = false;
+    if (!orderForm.name.trim()) {
+        errors.value.name = 'Meno je povinné.';
+        hasError = true;
+    }
+    if (!orderForm.email.trim()) {
+        errors.value.email = 'Email je povinný.';
+        hasError = true;
+    } else if (!/\S+@\S+\.\S+/.test(orderForm.email)) {
+        errors.value.email = 'Neplatný formát emailu.';
+        hasError = true;
+    }
+    if (!orderForm.phone.trim()) {
+        errors.value.phone = 'Telefónne číslo je povinné.';
+        hasError = true;
+    } else {
+        // Remove spaces, dashes, parentheses
+        const digitsOnly = orderForm.phone.replace(/[^\d]/g, '');
+        // Accept +, digits, spaces, dashes, parentheses, at least 8 digits
+        if (!/^\+?[0-9\s\-()]{8,}$/.test(orderForm.phone) || digitsOnly.length < 10) {
+            errors.value.phone = 'Neplatný formát telefónneho čísla. Zadajte platné číslo, napr. +42123456789 alebo 0902349832.';
+            hasError = true;
+        }
+    }
+    if (allTicketsZero.value) {
+        errors.value.tickets = 'Musíte si vybrať aspoň jeden lístok.';
+        hasError = true;
+    }
+    if (hasError) {
+        readableErrors.value.unshift('Niektoré polia obsahujú chyby. Skontrolujte ich a skúste to znova.');
+        return false;
+    }
+    return true;
+};
+
 </script>
 
 <template>
@@ -171,6 +222,13 @@ watch(selectedSeats, (seats) => {
                         >
                     </template>
                 </div>
+                <div class="mt-4">
+                    <Alert class="dark:bg-red-900 bg-red-200 border-red-600" v-for="(error, key) in readableErrors" :key="'error-' + key">
+                        <AlertTitle>
+                            <i class="fas fa-info-circle mr-2"></i> {{ error }}
+                        </AlertTitle>
+                    </Alert>
+                </div>
             </div>
             <template v-if="currentStep === 1">
                 <!-- Step 1: User details and ticket selection -->
@@ -180,63 +238,62 @@ watch(selectedSeats, (seats) => {
                     </h2>
                     <div>
                         <Form
-                            v-slot="{ errors, processing }"
                             :form="orderForm"
                             @submit="submitOrder"
                         >
                             <div class="mt-4 flex flex-col gap-2">
                                 <div>
                                     <Label
-                                        class="text-black dark:text-white"
+                                        class="text-black dark:text-white mt-3"
                                         for="name"
-                                        >Meno</Label
+                                        >Meno a priezvisko</Label
                                     >
                                     <Input
                                         id="name"
                                         v-model="orderForm.name"
-                                        class="mt-1 dark:text-white"
+                                        class="mt-2 dark:text-white"
                                         required
                                         type="text"
                                     />
                                     <InputError
                                         :message="errors.name"
-                                        class="mt-2"
+                                        class="mt-1"
                                     />
                                 </div>
                                 <div>
                                     <Label
-                                        class="text-black dark:text-white"
+                                        class="text-black dark:text-white mt-3"
                                         for="email"
                                         >Email</Label
                                     >
                                     <Input
                                         id="email"
                                         v-model="orderForm.email"
-                                        class="mt-1 dark:text-white"
+                                        class="mt-2 dark:text-white"
                                         required
                                         type="email"
                                     />
                                     <InputError
                                         :message="errors.email"
-                                        class="mt-2"
+                                        class="mt-1"
                                     />
                                 </div>
                                 <div>
                                     <Label
-                                        class="text-black dark:text-white"
+                                        class="text-black dark:text-white mt-3"
                                         for="phone"
                                         >Telefónne číslo</Label
                                     >
                                     <Input
                                         id="phone"
                                         v-model="orderForm.phone"
-                                        class="mt-1 dark:text-white"
+                                        class="mt-2 dark:text-white"
                                         required
                                         type="tel"
                                     />
                                     <InputError
                                         :message="errors.phone"
-                                        class="mt-2"
+                                        class="mt-1"
                                     />
                                 </div>
                             </div>
@@ -265,7 +322,7 @@ watch(selectedSeats, (seats) => {
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <button
-                                                class="rounded border px-2 py-0"
+                                                class="rounded border px-2 py-0 cursor-pointer"
                                                 type="button"
                                                 @click="decrement(ticket.id)"
                                             >
@@ -279,7 +336,7 @@ watch(selectedSeats, (seats) => {
                                                 type="number"
                                             />
                                             <button
-                                                class="rounded border px-2 py-0"
+                                                class="rounded border px-2 py-0 cursor-pointer"
                                                 type="button"
                                                 @click="increment(ticket.id)"
                                             >
@@ -318,9 +375,9 @@ watch(selectedSeats, (seats) => {
                         >Späť
                     </Button>
                     <Button
-                        :disabled="false"
                         :tabindex="4"
                         class="cursor-pointer"
+                        :disabled="allTicketsZero"
                         @click="nextStep"
                     >
                         <span>Pokračovať k výberu miest</span>
