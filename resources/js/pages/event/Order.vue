@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button';
 import InputError from '@/components/InputError.vue';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Form } from '@inertiajs/vue3';
+import { Form, router } from '@inertiajs/vue3';
 import { computed, reactive, ref, watch } from 'vue';
 import { Card, CardContent } from '@/components/ui/card';
 import SeatSelector from '@/components/order/SeatSelector.vue';
-import { Alert, AlertTitle } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import OrderController from '@/actions/App/Http/Controllers/OrderController';
 
 // import { create } from '@/routes/reservation';
 
@@ -17,6 +18,7 @@ interface Ticket {
     id: number;
     title: string;
     price: number;
+    reservations: number;
 }
 
 interface Event {
@@ -29,6 +31,8 @@ interface Event {
     registration_end?: string;
     user_id?: number;
     location: string;
+    reservations: number[];
+    address: string;
 }
 
 const props = defineProps<{ event: Event; tickets: Ticket[] }>();
@@ -46,7 +50,45 @@ const orderForm = reactive({
 });
 
 function submitOrder() {
-    // Implement order submission logic here, e.g. Inertia.post or similar
+    // Simple Inertia template — fill in your route and adjust payload as needed
+    const payload = {
+        name: orderForm.name,
+        email: orderForm.email,
+        phone: orderForm.phone,
+        // Map of ticketId -> quantity
+        tickets: { ...quantities },
+        // Selected seat indices and guest names
+        seats: [...selectedSeats.value],
+        guests: [...guestNames.value],
+        // Helpful context (optional)
+        event_id: props.event.id,
+        event_slug: props.event.url_slug,
+        total_price: totalPrice.value,
+    };
+
+    // Post to the web route for this event's order store endpoint
+    router.post(OrderController.create(props.event.url_slug).url, payload, {
+        preserveScroll: true,
+        onStart: () => {
+            // Clear any generic banners
+            readableErrors.value = [];
+        },
+        onError: (serverErrors: Record<string, string>) => {
+            // Server-side validation errors (422) will be here
+            // You can reflect them into your inline errors if desired
+            errors.value = { ...errors.value, ...serverErrors };
+            readableErrors.value.unshift('Nepodarilo sa odoslať formulár. Skontrolujte chyby a skúste to znova.');
+        },
+        onSuccess: () => {
+            // Optional: navigate, show toast, or reset local state
+            // Example: reset selections
+            // selectedSeats.value = [];
+            // guestNames.value = [];
+        },
+        onFinish: () => {
+            // Called after success or error
+        },
+    });
 }
 
 const quantities = reactive<{ [key: number]: number }>({});
@@ -76,9 +118,9 @@ const formattedStartTime = computed(() => {
     });
 });
 
-const formattedLocation = computed(() => {
-    if (!props.event.location) return '';
-    return props.event.location
+const formattedAddress = computed(() => {
+    if (!props.event.address) return '';
+    return props.event.address
         .split(/\r?\\n|\r/g)
         .map((part) => part.trim())
         .filter(Boolean)
@@ -113,6 +155,22 @@ function prevStep() {
 
 const selectedSeats = ref<number[]>([]);
 const guestNames = ref<string[]>([]);
+
+// Compute the dynamic max seats based on selected ticket quantities
+const maxSelectableSeats = computed(() => {
+    return props.tickets.reduce((sum, ticket) => {
+        const qty = quantities[ticket.id] || 0;
+        const perTicket = ticket.reservations ?? 1;
+        return sum + qty * perTicket;
+    }, 0);
+});
+
+// Ensure we never keep more selected seats than allowed
+watch(maxSelectableSeats, (limit) => {
+    if (selectedSeats.value.length > limit) {
+        selectedSeats.value = selectedSeats.value.slice(0, Math.max(0, limit));
+    }
+});
 
 // Sync guestNames with selectedSeats
 watch(selectedSeats, (seats) => {
@@ -152,8 +210,8 @@ const validateStepOne = () => {
         // Remove spaces, dashes, parentheses
         const digitsOnly = orderForm.phone.replace(/[^\d]/g, '');
         // Accept +, digits, spaces, dashes, parentheses, at least 8 digits
-        if (!/^\+?[0-9\s\-()]{8,}$/.test(orderForm.phone) || digitsOnly.length < 10) {
-            errors.value.phone = 'Neplatný formát telefónneho čísla. Zadajte platné číslo, napr. +42123456789 alebo 0902349832.';
+        if (!/^\+?[0-9\s\-()]{8,}$/.test(orderForm.phone) || digitsOnly.length < 12 || digitsOnly.length > 13) {
+            errors.value.phone = 'Neplatný formát telefónneho čísla. Zadajte platné číslo, napr. +421234567893 alebo 0902349832.';
             hasError = true;
         }
     }
@@ -195,7 +253,7 @@ const validateStepOne = () => {
                                 >
                                 <span class="ml-4"
                                     ><i class="fas fa-map-marker-alt mr-2"></i
-                                    >{{ formattedLocation }}</span
+                                    >{{ formattedAddress }}</span
                                 >
                             </div>
                         </div>
@@ -313,10 +371,20 @@ const validateStepOne = () => {
                             >
                                 <CardContent>
                                     <div class="flex justify-between">
-                                        <div>
+                                        <div class="flex items-center gap-8">
                                             <i class="fas fa-ticket mr-2"></i>
-                                            {{ ticket.title }}
-                                            <span class="ml-3 font-bold"
+                                            <div class="inline-flex gap-2">
+                                                <p class="mb-0">
+                                                    {{ ticket.title }}
+                                                </p>
+                                                <p class="text-md text-gray-500 dark:text-gray-400 mb-0">
+                                                    {{ ticket.reservations }}
+                                                    {{ ticket.reservations == 1 ? 'miesto' : (
+                                                        ticket.reservations >= 5 ? 'miest' : 'miesta'
+                                                ) }}
+                                                </p>
+                                            </div>
+                                            <span class="font-bold"
                                                 >{{ ticket.price }} €</span
                                             >
                                         </div>
@@ -386,28 +454,29 @@ const validateStepOne = () => {
             </template>
             <template v-else-if="currentStep === 2">
                 <!-- Step 2: Seat selection -->
-                <h2 class="text-3xl font-bold dark:text-white">Výber miest</h2>
+                <div>
+                    <h2 class="text-3xl font-bold dark:text-white mb-2">Výber miest</h2>
+                    <p class="text-lg dark:text-white">Zvolených {{ selectedSeats.length }} z {{ maxSelectableSeats }}</p>
+                </div>
                 <div class="flex w-full items-center justify-center">
                     <SeatSelector
                         v-model:modelValue="selectedSeats"
-                        :cols="10"
-                        :max-selected="3"
-                        :rows="5"
-                        :seat-gap="8"
-                        :seat-size="32"
+                        :src="props.event.location"
+                        seat-selector="circle.seat"
+                        :reserved-seats="props.event.reservations"
+                        :max-selected="maxSelectableSeats"
                     />
                 </div>
                 <div class="mt-4 flex w-full justify-between">
                     <Button
-                        :disabled="currentStep === 1"
-                        class="cursor-pointer"
                         variant="secondary"
+                        class="cursor-pointer"
                         @click="prevStep"
                         >Späť
                     </Button>
                     <Button
-                        :disabled="false"
                         :tabindex="4"
+                        :disabled="selectedSeats.length !== maxSelectableSeats"
                         class="cursor-pointer"
                         @click="nextStep"
                     >
@@ -506,6 +575,16 @@ const validateStepOne = () => {
                             {{ totalPrice }} &euro;
                         </h2>
                     </div>
+                    <div class="mt-4">
+                        <Alert class="">
+                            <AlertTitle>
+                                <i class="fas fa-info-circle mr-2"></i> Po objednaní dostanete e-mailom potvrdenie s detailami vašej objednávky a podrobnostiami o platbe.
+                            </AlertTitle>
+                            <AlertDescription>
+                                Úhrada objednávky prebieha výlučne bankovým prevodom.
+                            </AlertDescription>
+                        </Alert>
+                    </div>
                     <div class="mt-4 flex w-full justify-between">
                         <Button
                             variant="secondary"
@@ -538,6 +617,7 @@ input[type='number']::-webkit-outer-spin-button {
 
 /* Hide number input arrows for Firefox */
 input[type='number'] {
+    appearance: textfield;
     -moz-appearance: textfield;
 }
 </style>

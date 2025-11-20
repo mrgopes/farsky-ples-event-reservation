@@ -15,9 +15,8 @@ class TicketFactory extends Factory
         return [
             'event_id' => Event::factory(),
             'title' => $this->faker->words(2, true),
-            'price' => $this->faker->randomFloat(2, 5, 100),
-            'reservations' => $this->faker->numberBetween(0, 100),
+            'price' => $this->faker->numberBetween(5, 100),
+            'reservations' => $this->faker->numberBetween(1, 5),
         ];
     }
 }
-

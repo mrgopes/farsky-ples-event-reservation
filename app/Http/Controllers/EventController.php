@@ -11,10 +11,23 @@ class EventController extends Controller
     public function show($url_slug)
     {
         $event = Event::where('url_slug', $url_slug)
-            ->with('tickets')
+            ->with(['tickets', 'location'])
             ->firstOrFail();
+
         return Inertia::render('event/Show', [
-            'event' => $event,
+            'event' => array_merge($event->only([
+                'id',
+                'title',
+                'start_time',
+                'url_slug',
+                'seats_total',
+                'registration_start',
+                'registration_end',
+                'user_id',
+                'address'
+            ]), [
+                'location' => optional($event->location)->name,
+            ]),
             'tickets' => $event->tickets,
         ]);
     }

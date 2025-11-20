@@ -18,6 +18,11 @@ class Reservation extends Model
         'order_id',
     ];
 
+    protected $casts = [
+        'seat_number' => 'integer',
+        'order_id' => 'integer',
+    ];
+
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);

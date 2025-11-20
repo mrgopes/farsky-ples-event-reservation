@@ -18,13 +18,21 @@ return new class extends Migration
             $table->integer('seats_total');
             $table->string('title');
 
+            $table->string('address');
+
             $table->string('url_slug')->unique();
 
             $table->dateTime('start_time');
             $table->dateTime('registration_start');
             $table->dateTime('registration_end');
 
-            $table->string('location');
+            $table->string('contact_email');
+            $table->string('contact_phone');
+            $table->string('contact_name');
+
+            $table->string('bank_account');
+
+            $table->foreignId('location_id')->constrained('locations')->restrictOnDelete();
 
             // Todo: possibly variable symbol etc. later
         });

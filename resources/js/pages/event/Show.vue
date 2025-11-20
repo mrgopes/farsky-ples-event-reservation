@@ -11,6 +11,7 @@ interface Ticket {
   id: number;
   title: string;
   price: number;
+  reservations: number;
 }
 
 interface Event {
@@ -22,7 +23,7 @@ interface Event {
   registration_start?: string;
   registration_end?: string;
   user_id?: number;
-  location: string;
+  address: string;
 }
 
 const props = defineProps<{ event: Event; tickets: Ticket[] }>();
@@ -40,8 +41,8 @@ const formattedStartTime = computed(() => {
 });
 
 const formattedLocation = computed(() => {
-  if (!props.event.location) return '';
-  return props.event.location.replace(/\r?\\n|\r/g, ', ');
+  if (!props.event.address) return '';
+  return props.event.address.replace(/\r?\\n|\r/g, ', ');
 });
 
 </script>
@@ -70,7 +71,17 @@ const formattedLocation = computed(() => {
                             <div class="flex justify-between">
                                 <div>
                                     <i class="fas fa-ticket mr-2"></i>
-                                    {{ ticket.title }}
+                                    <div class="inline-flex gap-2">
+                                        <p class="mb-0">
+                                            {{ ticket.title }}
+                                        </p>
+                                        <p class="text-md text-gray-500 dark:text-gray-400 mb-0">
+                                            {{ ticket.reservations }}
+                                            {{ ticket.reservations == 1 ? 'miesto' : (
+                                            ticket.reservations >= 5 ? 'miest' : 'miesta'
+                                        ) }}
+                                        </p>
+                                    </div>
                                 </div>
                                 <div>
                                     {{ ticket.price }} €

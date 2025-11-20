@@ -19,9 +19,14 @@ return new class extends Migration
 
             $table->enum('status', ['pending', 'paid', 'cancelled'])->default('pending');
 
+            $table->string('name');
             $table->string('email');
             $table->string('phone')->nullable();
             $table->string('variable_symbol')->unique();
+            $table->string('payment_note')->unique();
+
+            $table->string('url_slug')->unique();
+            $table->string('qr_code')->unique()->nullable();
         });
     }
 

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Event extends Model
 {
@@ -15,16 +16,34 @@ class Event extends Model
         'user_id',
         'seats_total',
         'title',
+        'url_slug',
         'start_time',
         'registration_start',
         'registration_end',
-        'url_slug',
-        'location',
+        'contact_email',
+        'contact_phone',
+        'contact_name',
+        'bank_account',
+        'location_id',
+    ];
+
+    protected $casts = [
+        'seats_total' => 'integer',
+        'start_time' => 'datetime',
+        'registration_start' => 'datetime',
+        'registration_end' => 'datetime',
+        'user_id' => 'integer',
+        'location_id' => 'integer',
     ];
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function location(): BelongsTo
+    {
+        return $this->belongsTo(Location::class);
     }
 
     public function tickets(): HasMany
@@ -35,5 +54,15 @@ class Event extends Model
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function reservations(): HasManyThrough
+    {
+        return $this->hasManyThrough(Reservation::class, Order::class);
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'url_slug';
     }
 }

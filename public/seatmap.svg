@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 700 480" width="700" height="480" aria-labelledby="title desc" role="img">
+  <title id="title">Seat Map</title>
+  <desc id="desc">An example seating plan with 5 rows and 10 columns of circular seats.</desc>
+
+  <!-- Stage/Header -->
+  <rect x="30" y="20" width="640" height="40" rx="6" ry="6" fill="#e5e7eb" stroke="#999" />
+  <text x="350" y="46" text-anchor="middle" font-family="system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, 'Apple Color Emoji', 'Segoe UI Emoji'" font-size="16" fill="#333">Stage</text>
+
+  <!-- Seats: 5 rows x 10 columns -->
+  <!-- Grid config: startX=40, startY=100, gapX=60, gapY=60, r=20 -->
+  <!-- Row 1 -->
+  <circle class="seat" data-seat="0" cx="40" cy="100" r="20" />
+  <circle class="seat" data-seat="1" cx="100" cy="100" r="20" />
+  <circle class="seat" data-seat="2" cx="160" cy="100" r="20" />
+  <circle class="seat" data-seat="3" cx="220" cy="100" r="20" />
+  <circle class="seat" data-seat="4" cx="280" cy="100" r="20" />
+  <circle class="seat" data-seat="5" cx="340" cy="100" r="20" />
+  <circle class="seat" data-seat="6" cx="400" cy="100" r="20" />
+  <circle class="seat" data-seat="7" cx="460" cy="100" r="20" />
+  <circle class="seat" data-seat="8" cx="520" cy="100" r="20" />
+  <circle class="seat" data-seat="9" cx="580" cy="100" r="20" />
+
+  <!-- Row 2 -->
+  <circle class="seat" data-seat="10" cx="40" cy="160" r="20" />
+  <circle class="seat" data-seat="11" cx="100" cy="160" r="20" />
+  <circle class="seat" data-seat="12" cx="160" cy="160" r="20" />
+  <circle class="seat" data-seat="13" cx="220" cy="160" r="20" />
+  <circle class="seat" data-seat="14" cx="280" cy="160" r="20" />
+  <circle class="seat" data-seat="15" cx="340" cy="160" r="20" />
+  <circle class="seat" data-seat="16" cx="400" cy="160" r="20" />
+  <circle class="seat" data-seat="17" cx="460" cy="160" r="20" />
+  <circle class="seat" data-seat="18" cx="520" cy="160" r="20" />
+  <circle class="seat" data-seat="19" cx="580" cy="160" r="20" />
+
+  <!-- Row 3 -->
+  <circle class="seat" data-seat="20" cx="40" cy="220" r="20" />
+  <circle class="seat" data-seat="21" cx="100" cy="220" r="20" />
+  <circle class="seat" data-seat="22" cx="160" cy="220" r="20" />
+  <circle class="seat" data-seat="23" cx="220" cy="220" r="20" />
+  <circle class="seat" data-seat="24" cx="280" cy="220" r="20" />
+  <circle class="seat" data-seat="25" cx="340" cy="220" r="20" />
+  <circle class="seat" data-seat="26" cx="400" cy="220" r="20" />
+  <circle class="seat" data-seat="27" cx="460" cy="220" r="20" />
+  <circle class="seat" data-seat="28" cx="520" cy="220" r="20" />
+  <circle class="seat" data-seat="29" cx="580" cy="220" r="20" />
+
+  <!-- Row 4 -->
+  <circle class="seat" data-seat="30" cx="40" cy="280" r="20" />
+  <circle class="seat" data-seat="31" cx="100" cy="280" r="20" />
+  <circle class="seat" data-seat="32" cx="160" cy="280" r="20" />
+  <circle class="seat" data-seat="33" cx="220" cy="280" r="20" />
+  <circle class="seat" data-seat="34" cx="280" cy="280" r="20" />
+  <circle class="seat" data-seat="35" cx="340" cy="280" r="20" />
+  <circle class="seat" data-seat="36" cx="400" cy="280" r="20" />
+  <circle class="seat" data-seat="37" cx="460" cy="280" r="20" />
+  <circle class="seat" data-seat="38" cx="520" cy="280" r="20" />
+  <circle class="seat" data-seat="39" cx="580" cy="280" r="20" />
+
+  <!-- Row 5 -->
+  <circle class="seat" data-seat="40" cx="40" cy="340" r="20" />
+  <circle class="seat" data-seat="41" cx="100" cy="340" r="20" />
+  <circle class="seat" data-seat="42" cx="160" cy="340" r="20" />
+  <circle class="seat" data-seat="43" cx="220" cy="340" r="20" />
+  <circle class="seat" data-seat="44" cx="280" cy="340" r="20" />
+  <circle class="seat" data-seat="45" cx="340" cy="340" r="20" />
+  <circle class="seat" data-seat="46" cx="400" cy="340" r="20" />
+  <circle class="seat" data-seat="47" cx="460" cy="340" r="20" />
+  <circle class="seat" data-seat="48" cx="520" cy="340" r="20" />
+  <circle class="seat" data-seat="49" cx="580" cy="340" r="20" />
+
+  <!-- Legend (optional) -->
+  <g transform="translate(30, 410)">
+    <circle cx="10" cy="10" r="8" fill="#e5e7eb" stroke="#333" />
+    <text x="26" y="14" font-size="12" fill="#333" font-family="system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial">Voľné</text>
+    <circle cx="120" cy="10" r="8" fill="#2563eb" stroke="#333" />
+    <text x="136" y="14" font-size="12" fill="#333" font-family="system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial">Vybrané</text>
+  </g>
+</svg>
+

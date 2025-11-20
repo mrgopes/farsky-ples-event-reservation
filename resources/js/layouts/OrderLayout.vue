@@ -12,6 +12,7 @@ interface Event {
     registration_end?: string;
     user_id?: number;
     location: string;
+    address: string;
 }
 
 const props = defineProps<{
