@@ -23,11 +23,18 @@ class OrderController extends Controller
             ->firstOrFail();
 
         // Get seat numbers only from orders that are not cancelled
-        $reservedSeatNumbers = $event->reservations
-            ->filter(fn($reservation) => $reservation->order->status !== 'cancelled')
+        $activeReservations = $event->reservations
+            ->filter(fn($reservation) => $reservation->order->status !== 'cancelled');
+
+        $reservedSeatNumbers = $activeReservations
             ->pluck('seat_number')
             ->unique()
             ->values()
+            ->all();
+
+        // Create a mapping of seat_number => guest_name for hover tooltips
+        $seatNames = $activeReservations
+            ->mapWithKeys(fn($reservation) => [$reservation->seat_number => $reservation->guest_name])
             ->all();
 
         return Inertia::render('event/Order', [
@@ -47,6 +54,7 @@ class OrderController extends Controller
                 'contact_email',
             ]), [
                 'reservations' => $reservedSeatNumbers,
+                'seat_names' => $seatNames,
                 'location' => optional($event->location)->svg_map,
             ]),
             'tickets' => $event->tickets,

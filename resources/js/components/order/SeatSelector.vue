@@ -14,12 +14,22 @@ const props = defineProps<{
   maxSelected?: number;
   // New: reserved seats that cannot be selected
   reservedSeats?: number[];
+  // New: mapping of seat number to guest name for tooltips
+  seatNames?: Record<number, string>;
 }>();
 
 const emit = defineEmits(['update:modelValue']);
 
 // Shared selection state
 const selectedSeats = ref<number[]>(props.modelValue ? [...props.modelValue] : []);
+
+// Tooltip state
+const tooltip = ref<{ visible: boolean; x: number; y: number; text: string }>({
+  visible: false,
+  x: 0,
+  y: 0,
+  text: '',
+});
 
 // ===== External HTML/SVG mode =====
 const htmlContent = ref<string>('');
@@ -29,7 +39,8 @@ let seatIndices: number[] = [];
 const seatCssSelector = props.seatSelector || 'circle.seat';
 
 function isDarkMode() {
-  return document.documentElement.classList.contains('dark');
+    return false;
+  // return document.documentElement.classList.contains('dark');
 }
 function isReserved(idx: number): boolean {
   return Array.isArray(props.reservedSeats) && props.reservedSeats.includes(idx);
@@ -44,6 +55,23 @@ function seatFill(selected: boolean, reserved: boolean) {
 }
 function seatStroke() {
   return isDarkMode() ? '#bbb' : '#333';
+}
+
+function showTooltip(idx: number, event: MouseEvent) {
+  const name = props.seatNames?.[idx];
+  if (name && isReserved(idx)) {
+    const rect = (event.target as HTMLElement).getBoundingClientRect();
+    tooltip.value = {
+      visible: true,
+      x: rect.left + rect.width / 2,
+      y: rect.top,
+      text: name,
+    };
+  }
+}
+
+function hideTooltip() {
+  tooltip.value.visible = false;
 }
 
 function reconcileExternalUI() {
@@ -80,6 +108,18 @@ function onSeatNodeClickFactory(idx: number) {
   };
 }
 
+function onSeatNodeMouseEnter(idx: number) {
+  return (e: MouseEvent) => {
+    showTooltip(idx, e);
+  };
+}
+
+function onSeatNodeMouseLeave() {
+  return () => {
+    hideTooltip();
+  };
+}
+
 function bindExternalHandlers() {
   const root = containerRef.value;
   if (!root) return;
@@ -94,7 +134,10 @@ function bindExternalHandlers() {
   });
   // Attach listeners and initial styles
   seatNodes.forEach((node, i) => {
-    node.addEventListener('click', onSeatNodeClickFactory(seatIndices[i] ?? i));
+    const idx = seatIndices[i] ?? i;
+    node.addEventListener('click', onSeatNodeClickFactory(idx));
+    node.addEventListener('mouseenter', onSeatNodeMouseEnter(idx));
+    node.addEventListener('mouseleave', onSeatNodeMouseLeave());
   });
   reconcileExternalUI();
 }
@@ -207,7 +250,6 @@ function drawSeats() {
   const seatColor = isDark ? '#444' : '#e5e7eb';
   const selectedColor = '#2563eb';
   const disabledColor = reservedFill();
-  const borderColor = isDark ? '#bbb' : '#333';
   for (let row = 0; row < seatRows; row++) {
     for (let col = 0; col < seatCols; col++) {
       const x = col * (seatSize + seatGap) + seatGap;
@@ -217,12 +259,10 @@ function drawSeats() {
       ctx.fillStyle = isRes
         ? disabledColor
         : (selectedSeats.value.includes(idx) ? selectedColor : seatColor);
-      ctx.strokeStyle = borderColor;
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.arc(x + seatSize / 2, y + seatSize / 2, seatSize / 2, 0, 2 * Math.PI);
       ctx.fill();
-      ctx.stroke();
       // Optional: visual slash for reserved to emphasize disabled
       // if (isRes) {
       //   ctx.strokeStyle = isDark ? '#888' : '#666';
@@ -270,7 +310,7 @@ function handleCanvasClick(e: MouseEvent) {
 
 <template>
   <div v-if="src" style="border: 1px solid #ccc; background: transparent; cursor: pointer;">
-    <div ref="containerRef" v-html="htmlContent"></div>
+    <div ref="containerRef" v-html="htmlContent" class="seat-selector-container"></div>
   </div>
   <canvas
     v-else
@@ -279,4 +319,30 @@ function handleCanvasClick(e: MouseEvent) {
     :height="seatRows * (seatSize + seatGap) + seatGap"
     style="border: 1px solid #ccc; background: transparent; cursor: pointer;"
   ></canvas>
+  <div
+    v-if="tooltip.visible"
+    class="tooltip"
+    :style="{ left: tooltip.x + 'px', top: tooltip.y + 'px' }"
+  >
+    {{ tooltip.text }}
+  </div>
 </template>
+
+<style scoped>
+.seat-selector-container :deep(text) {
+  pointer-events: none;
+  user-select: none;
+}
+
+.tooltip {
+  position: fixed;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  pointer-events: none;
+  transform: translateY(-100%);
+  white-space: nowrap;
+}
+</style>

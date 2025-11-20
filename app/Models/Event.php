@@ -25,6 +25,7 @@ class Event extends Model
         'contact_name',
         'bank_account',
         'location_id',
+        'multiple_reservations_per_ticket',
     ];
 
     protected $casts = [

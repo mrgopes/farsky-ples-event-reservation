@@ -32,7 +32,9 @@ interface Event {
     user_id?: number;
     location: string;
     reservations: number[];
+    seat_names?: Record<number, string>;
     address: string;
+    multiple_reservations_per_ticket: boolean;
 }
 
 const props = defineProps<{ event: Event; tickets: Ticket[] }>();
@@ -377,7 +379,7 @@ const validateStepOne = () => {
                                                 <p class="mb-0">
                                                     {{ ticket.title }}
                                                 </p>
-                                                <p class="text-md text-gray-500 dark:text-gray-400 mb-0">
+                                                <p class="text-md text-gray-500 dark:text-gray-400 mb-0" v-if="event.multiple_reservations_per_ticket">
                                                     {{ ticket.reservations }}
                                                     {{ ticket.reservations == 1 ? 'miesto' : (
                                                         ticket.reservations >= 5 ? 'miest' : 'miesta'
@@ -464,6 +466,7 @@ const validateStepOne = () => {
                         :src="props.event.location"
                         seat-selector="circle.seat"
                         :reserved-seats="props.event.reservations"
+                        :seat-names="props.event.seat_names"
                         :max-selected="maxSelectableSeats"
                     />
                 </div>

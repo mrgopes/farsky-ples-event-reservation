@@ -19,7 +19,7 @@ return new class extends Migration
 
             $table->string('title');
             $table->integer('price');
-            $table->integer('reservations');
+            $table->integer('reservations')->default(1);
         });
     }
 

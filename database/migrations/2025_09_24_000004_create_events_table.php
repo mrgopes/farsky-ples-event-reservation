@@ -34,6 +34,8 @@ return new class extends Migration
 
             $table->foreignId('location_id')->constrained('locations')->restrictOnDelete();
 
+            $table->boolean('multiple_reservations_per_ticket')->default(false);
+
             // Todo: possibly variable symbol etc. later
         });
     }
