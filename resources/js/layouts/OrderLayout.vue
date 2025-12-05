@@ -12,12 +12,18 @@ interface Event {
     registration_end?: string;
     user_id?: number;
     location: string;
+}
+
+interface Location {
+    id: number;
+    name: string;
     address: string;
 }
 
 const props = defineProps<{
     title?: string,
     event: Event;
+    location: Location;
 }>();
 
 </script>
@@ -36,7 +42,7 @@ const props = defineProps<{
         <div class="flex w-full items-start justify-center opacity-100 transition-opacity duration-750 lg:grow starting:opacity-0 flex-1">
             <main class="w-full max-w-[335px] flex-col-reverse rounded-2xl lg:max-w-4xl lg:flex-row z-10">
                 <div>
-                    <h1 class="dark:text-white text-6xl font-extrabold text-center">{{ props.title ?? "Objednať lístok" }}</h1>
+                    <h1 class="dark:text-white text-3xl lg:text-6xl font-extrabold text-center">{{ props.title ?? "Objednať lístok" }}</h1>
                 </div>
                 <slot/>
             </main>

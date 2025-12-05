@@ -19,5 +19,7 @@ Route::get('event/{event:url_slug}', [EventController::class, 'show'])->name('ev
 
 Route::get('order/{order:url_slug}', [OrderController::class, 'sent'])->name('order.sent');
 
+Route::get('order/{order:url_slug}/confirm', [OrderController::class, 'confirm'])->middleware(['auth'])->name('order.confirm');
+
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

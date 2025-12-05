@@ -57,6 +57,7 @@ class OrderController extends Controller
                 'seat_names' => $seatNames,
                 'location' => optional($event->location)->svg_map,
             ]),
+            'location' => $event->location,
             'tickets' => $event->tickets,
         ]);
     }
@@ -72,6 +73,22 @@ class OrderController extends Controller
             'guests' => ['required', 'array'],
         ]);
 
+        // Check if requested seats are already reserved by active orders
+        $requestedSeats = array_values($request->seats);
+        $reservedSeats = Reservation::whereIn('seat_number', $requestedSeats)
+            ->whereHas('order', function ($query) use ($event) {
+                $query->where('event_id', $event->id)
+                      ->where('status', '!=', 'cancelled');
+            })
+            ->pluck('seat_number')
+            ->toArray();
+
+        if (!empty($reservedSeats)) {
+            return back()->withErrors([
+                'seats' => 'Niektoré z vybratých miest sú už rezervované: ' . implode(', ', $reservedSeats)
+            ])->withInput();
+        }
+
         $order = new Order();
         $order->event_id = $event->id;
         $order->name = $request->name;
@@ -79,8 +96,7 @@ class OrderController extends Controller
         $order->phone = $request->phone;
         $order->status = 'pending';
         $order->variable_symbol = (string) random_int(1000000000, 9999999999);
-        // Ensure unique, non-null payment_note
-        $order->payment_note = 'VS' . $order->variable_symbol;
+//        $order->payment_note = 'VS' . $order->variable_symbol;
         $order->url_slug = (string) Str::uuid();
         $order->save();
 
@@ -170,10 +186,27 @@ class OrderController extends Controller
         ]);
 
         return Inertia::render('order/Sent', [
-            'order' => $order->only(['id','name','email','phone','status', 'variable_symbol', 'payment_note']),
+            'order' => $order->only(['id','name','email','phone','status', 'variable_symbol', 'payment_note', 'qr_code']),
             'event' => $shapedEvent,
             'tickets' => $tickets,
-            'reservations' => $order->reservations->map->only(['id','seat_number','guest_name']),
+            'location' => $event->location,
+            'reservations' => $order->reservations->map->only(['id','seat_number','guest_name', 'qr_code']),
         ]);
+    }
+
+    public function confirm(Order $order)
+    {
+        $order->update([
+            'status' => 'paid'
+        ]);
+
+        $order->reservations->each(function ($reservation) {
+            $reservation->qr_code = (string) Str::uuid();
+            $reservation->save();
+        });
+
+        $this->sendOrderConfirmationEmail($order);
+
+        return json_encode(['status' => 'success', 'message' => 'Order confirmed and email sent.']);
     }
 }

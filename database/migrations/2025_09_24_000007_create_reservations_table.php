@@ -19,6 +19,7 @@ return new class extends Migration
             $table->integer('seat_number');
 
             $table->foreignId('order_id')->constrained('orders')->onDelete('cascade');
+            $table->string('qr_code')->unique()->nullable();
         });
     }
 

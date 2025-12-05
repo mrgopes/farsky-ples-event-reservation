@@ -15,7 +15,7 @@
         </div>
         @if($order->event->location)
         <div class="detail-row">
-            <span class="label">Miesto:</span> {{ $order->event->location->name }}
+            <span class="label">Miesto:</span> {{ $order->event->location->address }}
         </div>
         @endif
         @if($order->event->address)
@@ -82,14 +82,29 @@
     </div>
     @endif
 
+    <p>Vaše vstupenky môžete zobraziť na tomto linku:</p>
+
+    <div class="button-container">
+        <a href="{{ route('order.sent', ['order' => $order->url_slug]) }}" class="button">
+            Zobraziť objednávku
+        </a>
+    </div>
+
+    <p class="link-fallback">
+        Ak tlačidlo nefunguje, skopírujte tento odkaz do prehliadača:<br>
+        {{ route('order.sent', ['order' => $order->url_slug]) }}
+    </p>
+
     <div class="info-section">
         <h3>Platobné informácie</h3>
         <div class="detail-row">
             <span class="label">Variabilný symbol:</span> {{ $order->variable_symbol }}
         </div>
+        @if($order->payment_note != null)
         <div class="detail-row">
             <span class="label">Poznámka:</span> {{ $order->payment_note }}
         </div>
+        @endif
         <div class="detail-row">
             <span class="label">Stav objednávky:</span> {{ $order->status }}
         </div>

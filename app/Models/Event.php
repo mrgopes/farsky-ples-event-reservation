@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Event extends Model
 {
@@ -60,6 +61,17 @@ class Event extends Model
     public function reservations(): HasManyThrough
     {
         return $this->hasManyThrough(Reservation::class, Order::class);
+    }
+
+    /**
+     * Users attached to this event via the pivot table (with a `role` pivot column).
+     * This includes managers and other users who can control tickets.
+     */
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'event_user')
+            ->withPivot('role')
+            ->withTimestamps();
     }
 
     public function getRouteKeyName(): string

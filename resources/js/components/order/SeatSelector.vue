@@ -309,7 +309,7 @@ function handleCanvasClick(e: MouseEvent) {
 </script>
 
 <template>
-  <div v-if="src" style="border: 1px solid #ccc; background: transparent; cursor: pointer;">
+  <div v-if="src" class="max-w-full overflow-scroll" style="border: 1px solid #ccc; background: transparent; cursor: pointer;">
     <div ref="containerRef" v-html="htmlContent" class="seat-selector-container"></div>
   </div>
   <canvas

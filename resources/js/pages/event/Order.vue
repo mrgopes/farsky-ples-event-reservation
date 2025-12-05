@@ -11,6 +11,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import SeatSelector from '@/components/order/SeatSelector.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import OrderController from '@/actions/App/Http/Controllers/OrderController';
+import EventCard from '@/components/order/EventCard.vue';
 
 // import { create } from '@/routes/reservation';
 
@@ -33,11 +34,16 @@ interface Event {
     location: string;
     reservations: number[];
     seat_names?: Record<number, string>;
-    address: string;
     multiple_reservations_per_ticket: boolean;
 }
 
-const props = defineProps<{ event: Event; tickets: Ticket[] }>();
+interface Location {
+    id: number;
+    name: string;
+    address: string;
+}
+
+const props = defineProps<{ event: Event; tickets: Ticket[]; location: Location }>();
 const filteredTickets = computed(() =>
     props.tickets.filter(ticket => quantities[ticket.id] > 0)
 );
@@ -74,12 +80,20 @@ function submitOrder() {
         onStart: () => {
             // Clear any generic banners
             readableErrors.value = [];
+            errors.value = {};
         },
         onError: (serverErrors: Record<string, string>) => {
             // Server-side validation errors (422) will be here
-            // You can reflect them into your inline errors if desired
-            errors.value = { ...errors.value, ...serverErrors };
-            readableErrors.value.unshift('Nepodarilo sa odoslať formulár. Skontrolujte chyby a skúste to znova.');
+            errors.value = { ...serverErrors };
+
+            if (serverErrors.seats) {
+                readableErrors.value.push(serverErrors.seats);
+                selectedSeats.value = [];
+                guestNames.value = [];
+                currentStep.value = 2;
+            } else {
+                readableErrors.value.push('Nepodarilo sa odoslať formulár. Skontrolujte chyby a skúste to znova.');
+            }
         },
         onSuccess: () => {
             // Optional: navigate, show toast, or reset local state
@@ -107,27 +121,6 @@ function decrement(ticketId: number) {
         quantities[ticketId]--;
     }
 }
-
-const formattedStartTime = computed(() => {
-    if (!props.event.start_time) return '';
-    const date = new Date(props.event.start_time);
-    return date.toLocaleString('sk-SK', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
-});
-
-const formattedAddress = computed(() => {
-    if (!props.event.address) return '';
-    return props.event.address
-        .split(/\r?\\n|\r/g)
-        .map((part) => part.trim())
-        .filter(Boolean)
-        .join(', ');
-});
 
 const totalPrice = computed(() => {
     return props.tickets.reduce((sum, ticket) => {
@@ -231,42 +224,17 @@ const validateStepOne = () => {
 </script>
 
 <template>
-    <OrderLayout :event="props.event">
+    <OrderLayout :event="props.event" :location="props.location">
         <div class="flex flex-col gap-8">
             <div>
-                <h2 class="mt-6 text-3xl font-bold dark:text-white">
-                    Podujatie
-                </h2>
-                <Card class="mt-2 mb-8">
-                    <CardContent>
-                        <div class="flex justify-between">
-                            <div>
-                                <i class="fas fa-calendar mr-2"></i>
-                                <div class="inline-block">
-                                    <h3 class="font-bold">
-                                        {{ props.event.title }}
-                                    </h3>
-                                </div>
-                            </div>
-                            <div>
-                                <span
-                                    ><i class="fas fa-calendar-alt mr-2"></i
-                                    >{{ formattedStartTime }}</span
-                                >
-                                <span class="ml-4"
-                                    ><i class="fas fa-map-marker-alt mr-2"></i
-                                    >{{ formattedAddress }}</span
-                                >
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                <EventCard :event="props.event" :location="props.location" />
+
                 <!-- Step Counter -->
-                <div class="flex items-center justify-center gap-2">
+                <div class="lg:flex lg:items-center lg:justify-center gap-2 text-center">
                     <template v-for="(label, idx) in stepLabels" :key="label">
                         <div
                             :class="[
-                                'rounded-full border-1 px-4 py-2',
+                                'rounded-full border-1 px-4 py-2 ',
                                 idx + 1 === currentStep
                                     ? 'bg-black text-white dark:bg-white dark:text-black'
                                     : 'dark:text-white',
@@ -372,7 +340,7 @@ const validateStepOne = () => {
                                 v-bind:key="'ticket-' + ticket.id"
                             >
                                 <CardContent>
-                                    <div class="flex justify-between">
+                                    <div class="lg:flex lg:justify-between">
                                         <div class="flex items-center gap-8">
                                             <i class="fas fa-ticket mr-2"></i>
                                             <div class="inline-flex gap-2">
@@ -390,7 +358,7 @@ const validateStepOne = () => {
                                                 >{{ ticket.price }} €</span
                                             >
                                         </div>
-                                        <div class="flex items-center gap-2">
+                                        <div class="flex items-center gap-2 justify-end">
                                             <button
                                                 class="rounded border px-2 py-0 cursor-pointer"
                                                 type="button"

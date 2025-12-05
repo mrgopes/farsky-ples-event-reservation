@@ -23,10 +23,9 @@ return new class extends Migration
             $table->string('email');
             $table->string('phone')->nullable();
             $table->string('variable_symbol')->unique();
-            $table->string('payment_note')->unique();
+            $table->string('payment_note')->unique()->nullable();
 
             $table->string('url_slug')->unique();
-            $table->string('qr_code')->unique()->nullable();
         });
     }
 

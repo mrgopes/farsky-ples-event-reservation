@@ -24,10 +24,8 @@ class EventController extends Controller
                 'registration_start',
                 'registration_end',
                 'user_id',
-                'address'
-            ]), [
-                'location' => optional($event->location)->name,
-            ]),
+            ])),
+            'location' => $event->location,
             'tickets' => $event->tickets,
         ]);
     }

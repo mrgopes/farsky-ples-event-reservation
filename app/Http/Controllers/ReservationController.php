@@ -11,7 +11,7 @@ class ReservationController extends Controller
     public function create(string $url_slug, Request $request)
     {
         $event = Event::where('url_slug', $url_slug)
-            ->with('tickets')
+            ->with(['tickets', 'location'])
             ->firstOrFail();
 
         $contact_information = $request->get('name');
@@ -22,6 +22,7 @@ class ReservationController extends Controller
             'tickets' => $event->tickets,
             'contact_information' => $contact_information,
             'selected_tickets' => $selected_tickets,
+            'location' => $event->location,
         ]);
     }
 }

@@ -23,11 +23,16 @@ interface Event {
   registration_start?: string;
   registration_end?: string;
   user_id?: number;
-  address: string;
   multiple_reservations_per_ticket: boolean;
 }
 
-const props = defineProps<{ event: Event; tickets: Ticket[] }>();
+interface Location {
+  id: number;
+  name: string;
+  address: string;
+}
+
+const props = defineProps<{ event: Event; tickets: Ticket[]; location: Location }>();
 
 const formattedStartTime = computed(() => {
   if (!props.event.start_time) return '';
@@ -42,8 +47,70 @@ const formattedStartTime = computed(() => {
 });
 
 const formattedLocation = computed(() => {
-  if (!props.event.address) return '';
-  return props.event.address.replace(/\r?\\n|\r/g, ', ');
+  if (!props.location.address) return '';
+  return props.location.address.replace(/\r?\\n|\r/g, ', ');
+});
+
+const totalReservedSeats = computed(() => {
+  return props.tickets.reduce((sum, ticket) => sum + ticket.reservations, 0);
+});
+
+const availableSeats = computed(() => {
+  return props.event.seats_total - totalReservedSeats.value;
+});
+
+const isWithinRegistrationWindow = computed(() => {
+  const now = new Date();
+
+  if (props.event.registration_start) {
+    const startDate = new Date(props.event.registration_start);
+    if (now < startDate) return false;
+  }
+
+  if (props.event.registration_end) {
+    const endDate = new Date(props.event.registration_end);
+    if (now > endDate) return false;
+  }
+
+  return true;
+});
+
+const registrationNotStarted = computed(() => {
+  if (!props.event.registration_start) return false;
+  const now = new Date();
+  const startDate = new Date(props.event.registration_start);
+  return now < startDate;
+});
+
+const registrationEnded = computed(() => {
+  if (!props.event.registration_end) return false;
+  const now = new Date();
+  const endDate = new Date(props.event.registration_end);
+  return now > endDate;
+});
+
+const isSoldOut = computed(() => {
+  return availableSeats.value <= 0;
+});
+
+const canPurchase = computed(() => {
+  return isWithinRegistrationWindow.value && !isSoldOut.value && props.tickets.length > 0;
+});
+
+const buttonText = computed(() => {
+  if (registrationNotStarted.value) {
+    return 'Predaj ešte nezačal';
+  }
+  if (registrationEnded.value) {
+    return 'Predaj lístkov sa skončil';
+  }
+  if (isSoldOut.value) {
+    return 'Vypredané';
+  }
+  if (props.tickets.length === 0) {
+    return 'Žiadne dostupné lístky';
+  }
+  return 'Kúpiť lístok na toto podujatie';
 });
 
 </script>
@@ -59,10 +126,10 @@ const formattedLocation = computed(() => {
                 </p>
             </div>
 
-            <div>
-                <h2 class="dark:text-white text-3xl font-bold">O akcii</h2>
-                <p class="dark:text-gray-200">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec et eros sit amet leo fermentum porta sit amet eu magna. Suspendisse potenti. Sed eleifend ac nibh ac auctor. Cras pellentesque felis metus, et ullamcorper magna dapibus quis. Pellentesque id consequat diam. Phasellus lacinia ullamcorper nisi at porta. Nam in velit ut tellus faucibus malesuada quis ac libero. </p>
-            </div>
+<!--            <div>-->
+<!--                <h2 class="dark:text-white text-3xl font-bold">O akcii</h2>-->
+<!--                <p class="dark:text-gray-200">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec et eros sit amet leo fermentum porta sit amet eu magna. Suspendisse potenti. Sed eleifend ac nibh ac auctor. Cras pellentesque felis metus, et ullamcorper magna dapibus quis. Pellentesque id consequat diam. Phasellus lacinia ullamcorper nisi at porta. Nam in velit ut tellus faucibus malesuada quis ac libero. </p>-->
+<!--            </div>-->
 
             <div>
                 <h2 class="dark:text-white text-3xl font-bold">Dostupné lístky</h2>
@@ -106,18 +173,13 @@ const formattedLocation = computed(() => {
 
         <div class="flex w-full justify-center mt-8">
             <Button
-                class="mt-4 cursor-pointer"
+                :class="'mt-4 ' + (!canPurchase ? ' disabled opacity-50  cursor-default' : ' cusror-pointer')"
                 :tabindex="4"
-                :disabled="false"
-                :href="create.url(props.event.url_slug)"
+                :disabled="!canPurchase"
+                :href="canPurchase ? create.url(props.event.url_slug) : ''"
                 :as="Link"
             >
-                <span v-if="!false">
-                    Kúpiť lístok na toto podujatie
-                </span>
-                <span v-else>
-                    Vypredané
-                </span>
+                {{ buttonText }}
             </Button>
         </div>
     </EventLayout>

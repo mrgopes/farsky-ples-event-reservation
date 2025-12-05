@@ -2,9 +2,11 @@
 import OrderLayout from '@/layouts/OrderLayout.vue';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
-import { Card, CardContent } from '@/components/ui/card';
+import { computed, ref } from 'vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import EventCard from '@/components/order/EventCard.vue';
+import QrcodeVue from 'qrcode.vue';
+import { Button } from '@/components/ui/button';
 
 // import { create } from '@/routes/reservation';
 
@@ -20,6 +22,7 @@ interface Reservation {
     id: number;
     seat_number: number;
     guest_name: string;
+    qr_code: string;
 }
 
 interface Event {
@@ -32,11 +35,11 @@ interface Event {
     registration_end?: string;
     user_id?: number;
     location: string;
-    address: string;
     bank_account: string;
     contact_name:  string;
     contact_email: string;
     contact_phone: string;
+    multiple_reservations_per_ticket: boolean;
 }
 
 interface Order {
@@ -47,6 +50,13 @@ interface Order {
     status: string;
     variable_symbol: string;
     payment_note: string;
+    qr_code: string;
+}
+
+interface Location {
+    id: number;
+    name: string;
+    address: string;
 }
 
 const props = defineProps<{
@@ -54,6 +64,7 @@ const props = defineProps<{
     tickets: Ticket[];
     order: Order;
     reservations: Reservation[];
+    location: Location;
 }>();
 
 // Access flash messages provided by Inertia shared props
@@ -62,67 +73,37 @@ const flashSuccess = computed(
     () => (page.props as any).flash?.success as string | undefined,
 );
 
-const formattedStartTime = computed(() => {
-    if (!props.event.start_time) return '';
-    const date = new Date(props.event.start_time);
-    return date.toLocaleString('sk-SK', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
-});
-
-const formattedLocation = computed(() => {
-    if (!props.event.address) return '';
-    return props.event.address
-        .split(/\r?\\n|\r/g)
-        .map((part) => part.trim())
-        .filter(Boolean)
-        .join(', ');
-});
-
 const totalPrice = computed(() => {
     return props.tickets.reduce(
         (sum, ticket) => sum + ticket.price * (ticket.amount ?? 1),
         0,
     );
 });
+
+// Carousel state for QR codes
+const currentQrIndex = ref(0);
+
+const nextQr = () => {
+    if (currentQrIndex.value < props.reservations.length - 1) {
+        currentQrIndex.value++;
+    }
+};
+
+const prevQr = () => {
+    if (currentQrIndex.value > 0) {
+        currentQrIndex.value--;
+    }
+};
+
+const goToQr = (index: number) => {
+    currentQrIndex.value = index;
+};
 </script>
 
 <template>
-    <OrderLayout :event="props.event" title="Objednávka">
+    <OrderLayout :event="props.event" :location="props.location" title="Objednávka">
         <div class="flex flex-col gap-8">
-            <div>
-                <h2 class="mt-6 text-3xl font-bold dark:text-white">
-                    Podujatie
-                </h2>
-                <Card class="mt-2">
-                    <CardContent>
-                        <div class="flex justify-between">
-                            <div>
-                                <i class="fas fa-calendar mr-2"></i>
-                                <div class="inline-block">
-                                    <h3 class="font-bold">
-                                        {{ props.event.title }}
-                                    </h3>
-                                </div>
-                            </div>
-                            <div>
-                                <span
-                                    ><i class="fas fa-calendar-alt mr-2"></i
-                                    >{{ formattedStartTime }}</span
-                                >
-                                <span class="ml-4"
-                                    ><i class="fas fa-map-marker-alt mr-2"></i
-                                    >{{ formattedLocation }}</span
-                                >
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
+            <EventCard :event="props.event" :location="props.location" />
             <div>
                 <Alert
                     v-if="flashSuccess"
@@ -181,9 +162,12 @@ const totalPrice = computed(() => {
                         <p class="mb-6">
                             <strong>IBAN:</strong> {{ props.event.bank_account }} <br />
                             <strong>Variabilny symbol:</strong> {{ props.order.variable_symbol }} <br />
-                            <strong>Poznamka:</strong> {{ props.order.payment_note }} <br />
+                            <span v-if="props.order.payment_note != null"><strong>Poznamka:</strong> {{ props.order.payment_note }} <br /></span>
                             <br />
                             <strong>Suma:</strong> {{ totalPrice }} €
+                        </p>
+                        <p class="mb-6">
+                            Do poznámky platby môžete uviesť Vaše meno a priezvisko. Párovanie platieb sa deje na základe variabilného symbolu.
                         </p>
                         <Alert class="">
                             <AlertTitle class="mb-1 font-bold"
@@ -207,9 +191,71 @@ const totalPrice = computed(() => {
                         </h2>
                         <p class="mb-6">Zaplatená</p>
                         <h2 class="mb-2 text-2xl font-bold dark:text-white">
-                            QR kód na vstup
+                            QR kódy na vstup
                         </h2>
-                        ...
+
+                        <!-- QR Code Carousel -->
+                        <div class="relative">
+                            <!-- Current QR Code -->
+                            <div class="flex flex-col items-center justify-center mb-4">
+                                <div class="bg-white p-4 rounded-lg mb-4">
+                                    <QrcodeVue
+                                        :value="`${props.reservations[currentQrIndex].qr_code}`"
+                                        :size="200"
+                                    />
+                                </div>
+                                <p class="text-center dark:text-white font-semibold mb-2">
+                                    Miesto {{ props.reservations[currentQrIndex].seat_number }} -
+                                    {{ props.reservations[currentQrIndex].guest_name }}
+                                </p>
+                                <p class="text-center text-sm dark:text-gray-300">
+                                    {{ currentQrIndex + 1 }} z {{ props.reservations.length }}
+                                </p>
+                            </div>
+
+                            <!-- Navigation Arrows -->
+                            <div class="flex justify-center items-center gap-4 mb-4" v-if="props.reservations.length > 1">
+                                <Button
+                                    @click="prevQr"
+                                    :disabled="currentQrIndex === 0"
+                                    variant="outline"
+                                    class="cursor-pointer"
+                                    size="icon"
+                                >
+                                    <i class="fas fa-chevron-left"></i>
+                                </Button>
+
+                                <Button
+                                    @click="nextQr"
+                                    :disabled="currentQrIndex === props.reservations.length - 1"
+                                    variant="outline"
+                                    class="cursor-pointer"
+                                    size="icon"
+                                >
+                                    <i class="fas fa-chevron-right"></i>
+                                </Button>
+                            </div>
+
+                            <!-- Dot Indicators -->
+                            <div class="flex justify-center gap-2 mb-4" v-if="props.reservations.length > 1">
+                                <button
+                                    v-for="(reservation, index) in props.reservations"
+                                    :key="'dot-' + reservation.id"
+                                    @click="goToQr(index)"
+                                    :class="[
+                                        'w-2 h-2 rounded-full transition-all',
+                                        index === currentQrIndex
+                                            ? 'bg-black dark:bg-white w-8'
+                                            : 'bg-gray-400 dark:bg-gray-600'
+                                    ]"
+                                    :aria-label="`Prejsť na QR kód pre ${reservation.guest_name}`"
+                                ></button>
+                            </div>
+                        </div>
+
+                        <p class="dark:text-white text-center">
+                            Týmito QR kódmi sa preukážete pri vstupe na podujatie. Každý hosť potrebuje svoj vlastný QR kód.
+                        </p>
                     </div>
                     <div v-if="props.order.status == 'cancelled'">
                         <h2 class="mb-2 text-2xl font-bold dark:text-white">
