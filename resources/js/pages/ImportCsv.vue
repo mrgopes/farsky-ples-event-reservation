@@ -315,7 +315,7 @@ const totalOrders = computed(() => {
                 <div v-if="preview.not_found.length > 0" class="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border p-6 bg-card">
                     <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
                         <AlertCircleIcon class="w-5 h-5 text-gray-600" />
-                        Variabilné symboly nenájdené v objednávkach ({{ preview.not_found.length }})
+                        Variabilné symboly nenájdené v čakajúcich objednávkach ({{ preview.not_found.length }})
                     </h3>
                     <div class="flex flex-wrap gap-2">
                         <span
@@ -334,6 +334,7 @@ const totalOrders = computed(() => {
                         <AlertCircleIcon class="w-5 h-5 text-gray-600" />
                         Nesúhlasí suma ({{ preview.amount_mismatch.length }})
                     </h3>
+                    <p class="text-sm text-muted-foreground mb-4">Objednávky, ktorým nesúhlasí suma, je nutné vyriešiť ručne. Tento import ich nijak neovplyvní.</p>
                     <div class="space-y-2 max-h-64 overflow-y-auto">
                         <div
                             v-for="mismatch in preview.amount_mismatch"
