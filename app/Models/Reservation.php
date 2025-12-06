@@ -16,6 +16,7 @@ class Reservation extends Model
         'guest_name',
         'seat_number',
         'order_id',
+        'qr_code',
     ];
 
     protected $casts = [

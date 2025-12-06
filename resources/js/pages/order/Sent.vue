@@ -98,6 +98,10 @@ const prevQr = () => {
 const goToQr = (index: number) => {
     currentQrIndex.value = index;
 };
+
+const currentQrUrl = computed(() => {
+    return `${window.location.origin}/reservation/${props.reservations[currentQrIndex.value].qr_code}`;
+});
 </script>
 
 <template>
@@ -200,7 +204,7 @@ const goToQr = (index: number) => {
                             <div class="flex flex-col items-center justify-center mb-4">
                                 <div class="bg-white p-4 rounded-lg mb-4">
                                     <QrcodeVue
-                                        :value="`${props.reservations[currentQrIndex].qr_code}`"
+                                        :value="currentQrUrl"
                                         :size="200"
                                     />
                                 </div>

@@ -4,6 +4,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\CollaboratorController;
+use App\Http\Controllers\ReservationController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\EventController;
@@ -63,6 +64,10 @@ Route::get('order/{order:url_slug}', [OrderController::class, 'sent'])->name('or
 Route::get('order/{order:url_slug}/confirm', [OrderController::class, 'confirm'])->middleware(['auth'])->name('order.confirm');
 Route::post('order/{order:url_slug}/confirm', [OrderController::class, 'confirmOrder'])->middleware(['auth'])->name('order.confirm.post');
 Route::post('order/{order:url_slug}/cancel', [OrderController::class, 'cancelOrder'])->middleware(['auth'])->name('order.cancel');
+
+// Reservation QR code scanning routes (for staff members)
+Route::get('reservation/scan', [ReservationController::class, 'scan'])->middleware(['auth', 'verified'])->name('reservation.scan');
+Route::get('reservation/{qrCode}', [ReservationController::class, 'show'])->middleware(['auth', 'verified'])->name('reservation.show');
 
 // CSV import routes
 Route::get('event/{event:url_slug}/import-csv', [OrderController::class, 'showImportCsv'])->middleware(['auth'])->name('event.import-csv');
