@@ -15,8 +15,8 @@ defineProps<{
     <div
         class="relative flex min-h-screen flex-col items-center bg-transparent p-6 text-[#1b1b18] lg:justify-center lg:p-8"
     >
-        <img :src="$props.background ?? '/images/default-background.jpg'" alt="Background" class="absolute inset-0 w-full h-full object-cover opacity-50 z-0 pointer-events-none" />
-        <div class="absolute inset-0 z-0 pointer-events-none bg-gradient-to-t dark:from-black/100 dark:via-black/90 from-white/100 via-white/90 to-transparent"></div>
+        <img :src="$props.background ?? '/images/default-background.jpg'" alt="Background" class="absolute inset-0 w-full h-full object-cover opacity-60 z-0 pointer-events-none" />
+        <div class="absolute inset-0 z-0 pointer-events-none bg-gradient-to-t dark:from-black/100 dark:via-black/80 from-white/100 via-white/80 to-transparent"></div>
         <header
             class="mb-6 w-full max-w-[335px] text-sm not-has-[nav]:hidden lg:max-w-4xl"
         >

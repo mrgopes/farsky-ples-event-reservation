@@ -173,7 +173,7 @@ const currentQrUrl = computed(() => {
                             <br />
                             <strong>Suma:</strong> {{ totalPrice }} €
                         </p>
-                        <p class="mb-6">
+                        <p class="mb-6 font-bold">
                             Do poznámky platby môžete uviesť Vaše meno a priezvisko. Párovanie platieb sa deje na základe variabilného symbolu.
                         </p>
                         <Alert class="">

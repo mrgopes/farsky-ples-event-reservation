@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Farský ples Čierna Voda</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root { --bg:#ffffff; --fg:#111111; }
+        @media (prefers-color-scheme: dark) {
+            :root { --bg:#0b0f17; --fg:#e5e7eb; }
+        }
+        html, body { height: 100%; }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--fg);
+            font: 16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Cantarell, Ubuntu, "Helvetica Neue", Arial, "Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+            display: grid;
+            place-items: center;
+            text-align: center;
+        }
+        .emoji {
+            font-size: 8rem;
+            line-height: 1;
+            display: inline-block;
+            transform-origin: 50% 90%;
+            animation: dance 1s ease-in-out infinite;
+        }
+        @keyframes dance {
+            0%, 100% { transform: rotate(0deg) translateY(0); }
+            25% { transform: rotate(-12deg) translateY(-3px); }
+            50% { transform: rotate(0deg) translateY(0); }
+            75% { transform: rotate(12deg) translateY(-3px); }
+        }
+        h1 {
+            margin: .5rem 0 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+            letter-spacing: .02em;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .emoji { animation: none; }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <div class="emoji" aria-hidden="true">🕺</div>
+        <h1 style="margin-top: 2em; padding-bottom: 0; font-weight: 700; font-size: 30px;">Farský ples Čierna Voda</h1>
+        <p style="margin-top: 0.5em;">Na tejto stránke práve prebieha údržba</p>
+    </main>
+</body>
+</html>

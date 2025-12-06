@@ -6,7 +6,7 @@
     <p>Vaša objednávka bola úspešne vytvorená a čaká na zaplatenie.</p>
 
     <div class="event-info">
-        <strong>Podujatie:</strong> {{ $order->event->title }}<br>
+        <strong>Podujatie:</strong> {{ optional($order->event)->overline  }} {{ $order->event->title }}<br>
         <strong>Dátum:</strong> {{ \Carbon\Carbon::parse($order->event->start_time)->format('d.m.Y H:i') }}
     </div>
 

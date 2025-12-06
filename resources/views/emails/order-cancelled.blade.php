@@ -10,7 +10,7 @@
     <div class="info-section">
         <h3>Detaily podujatia</h3>
         <div class="detail-row">
-            <span class="label">Názov:</span> {{ optional($order->event)->title }}
+            <span class="label">Názov:</span> {{ optional($order->event)->overline  }} {{ optional($order->event)->title }}
         </div>
         <div class="detail-row">
             <span class="label">Dátum:</span> {{ optional(optional($order->event)->start_time) ? \Carbon\Carbon::parse($order->event->start_time)->format('d.m.Y H:i') : '' }}

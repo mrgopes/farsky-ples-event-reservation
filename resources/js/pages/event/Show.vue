@@ -138,7 +138,7 @@ const backgroundImageUrl = computed(() => {
             <div v-else-if="props.event.overline != '' && props.event.overline != null" class="text-center">
                 <p class="text-2xl dark:text-white font-medium mb-2">{{ props.event.overline }}</p>
                 <h1 class="dark:text-white text-6xl font-extrabold">{{ props.event.title }}</h1>
-                <p class="dark:text-gray-200 font-bold mt-3">
+                <p class="dark:text-gray-200 font-bold mt-3 text-lg">
                     <span><i class="fas fa-calendar-alt mr-2"></i>{{ formattedStartTime }}</span>
                     <span class="ml-4"><i class="fas fa-map-marker-alt mr-2"></i>{{ formattedLocation }}</span>
                 </p>
