@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, useForm, router } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { computed } from 'vue';
 
 interface Location {
     id: number;
@@ -78,6 +79,7 @@ const form = useForm({
     multiple_reservations_per_ticket: props.event.multiple_reservations_per_ticket,
     background_image: null as File | null,
     remove_background_image: false,
+    _method: 'PUT',
 });
 
 const generateSlug = () => {
@@ -91,7 +93,7 @@ const generateSlug = () => {
     }
 };
 
-const handleFileChange = (e: InputEvent) => {
+const handleFileChange = (e: any) => {
     const target = e.target as HTMLInputElement;
     if (target.files && target.files[0]) {
         form.background_image = target.files[0];
@@ -102,12 +104,52 @@ const handleFileChange = (e: InputEvent) => {
 const removeBackgroundImage = () => {
     form.background_image = null;
     form.remove_background_image = true;
+    // Reset the actual file input element
+    const fileInput = document.getElementById('background_image') as HTMLInputElement;
+    if (fileInput) {
+        fileInput.value = '';
+    }
 };
 
+const previewImageUrl = computed(() => {
+    if (form.background_image) {
+        return window.URL.createObjectURL(form.background_image);
+    }
+    return '';
+});
+
 const submit = () => {
-    form.put(`/event/${props.event.url_slug}`, {
-        preserveScroll: true,
-    });
+    // If no file is selected, remove it from the form data to prevent sending null/empty files
+    if (!form.background_image) {
+        // Create a copy of form data without the background_image field
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { background_image: _, ...formDataWithoutImage } = form.data();
+
+        router.post(`/event/${props.event.url_slug}`, formDataWithoutImage, {
+            preserveScroll: true,
+            onSuccess: () => {
+                // Reset file input on success
+                const fileInput = document.getElementById('background_image') as HTMLInputElement;
+                if (fileInput) {
+                    fileInput.value = '';
+                }
+            },
+        });
+    } else {
+        // Submit with file included
+        form.post(`/event/${props.event.url_slug}`, {
+            preserveScroll: true,
+            forceFormData: true,
+            onSuccess: () => {
+                // Reset file input on success
+                form.background_image = null;
+                const fileInput = document.getElementById('background_image') as HTMLInputElement;
+                if (fileInput) {
+                    fileInput.value = '';
+                }
+            },
+        });
+    }
 };
 </script>
 
@@ -392,7 +434,7 @@ const submit = () => {
                             <Label>Náhľad nového obrázka</Label>
                             <div class="relative">
                                 <img
-                                    :src="URL.createObjectURL(form.background_image)"
+                                    :src="previewImageUrl"
                                     alt="Náhľad obrázka"
                                     class="h-48 w-full rounded-lg object-cover"
                                 />
