@@ -3,7 +3,7 @@
 @section('content')
     <p>Dobrý deň {{ $order->name }},</p>
 
-    <p>Ďakujeme za Vašu objednávku! Toto je potvrdenie jej zaplatenia.</p>
+    <p>Ďakujeme za Vašu objednávku! Toto je potvrdenie o jej zaplatení.</p>
 
     <div class="info-section">
         <h3>Informácie o podujatí</h3>
@@ -76,7 +76,9 @@
         <h3>Rezervované miesta</h3>
         @foreach($order->reservations as $reservation)
         <div class="detail-row">
-            <span class="label">Miesto {{ $reservation->seat_number }}:</span> {{ $reservation->guest_name }}
+            <span class="label">Miesto {{ $reservation->seat_number }}
+                @if($reservation->computeAdditionalInformation() != "") ({{$reservation->computeAdditionalInformation()}})@endif:
+            </span> {{ $reservation->guest_name }}
         </div>
         @endforeach
     </div>
@@ -94,21 +96,6 @@
         Ak tlačidlo nefunguje, skopírujte tento odkaz do prehliadača:<br>
         {{ route('order.sent', ['order' => $order->url_slug]) }}
     </p>
-
-    <div class="info-section">
-        <h3>Platobné informácie</h3>
-        <div class="detail-row">
-            <span class="label">Variabilný symbol:</span> {{ $order->variable_symbol }}
-        </div>
-        @if($order->payment_note != null)
-        <div class="detail-row">
-            <span class="label">Poznámka:</span> {{ $order->payment_note }}
-        </div>
-        @endif
-        <div class="detail-row">
-            <span class="label">Stav objednávky:</span> {{ $order->status }}
-        </div>
-    </div>
 
     <p style="margin-top: 20px;">
         V prípade akýchkoľvek otázok nás neváhajte kontaktovať.

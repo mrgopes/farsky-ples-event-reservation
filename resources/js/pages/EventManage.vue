@@ -341,14 +341,6 @@ const removeCollaborator = (userId: number) => {
     }
 };
 
-const openPrintDialog = () => {
-    isPrintDialogOpen.value = true;
-};
-
-const printSeatMap = () => {
-    window.print();
-};
-
 const openPrintPage = () => {
     window.open(`/event/${props.event.url_slug}/print`, '_blank');
 };

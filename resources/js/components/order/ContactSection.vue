@@ -17,9 +17,6 @@ defineProps<{
         <h3 class="mb-2 text-lg font-semibold dark:text-white">
             Kontakt na organizátora
         </h3>
-        <p class="dark:text-white">
-            V prípade otázok kontaktujte:
-        </p>
         <div class="mt-2 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
             <p class="dark:text-white">
                 <strong>{{ event.contact_name }}</strong><br />

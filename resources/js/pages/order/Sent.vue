@@ -179,13 +179,13 @@ const currentQrUrl = computed(() => {
                         <Alert class="">
                             <AlertTitle class="mb-1 font-bold"
                                 ><i class="fas fa-info-circle mr-2"></i>
-                                Prosíme, aby ste platbu vykonali čo najskôr
+                                Prosíme, aby ste platbu vykonali hneď alebo najneskôr do 5 dní
                                 </AlertTitle
                             >
                             <AlertDescription>
                                 Platby sú overované manuálne spravidla raz týždenne. Dáme Vám vedieť
                                 emailom, keď bude Vaša platba overená.
-                                <b>Objednávka bude zrušená, ak platba nebude prijatá do 5 dní od vytvorenia objednávky.</b>
+                                <b class="text-red-800 dark:text-red-400">Objednávka bude zrušená, ak platba nebude prijatá do 5 dní od vytvorenia objednávky.</b>
                             </AlertDescription>
                         </Alert>
                     </div>

@@ -202,10 +202,11 @@ const validateStepOne = () => {
         errors.value.phone = 'Telefónne číslo je povinné.';
         hasError = true;
     } else {
-        // Remove spaces, dashes, parentheses
+        // Remove spaces, dashes, parentheses, and plus sign to count digits only
         const digitsOnly = orderForm.phone.replace(/[^\d]/g, '');
-        // Accept +, digits, spaces, dashes, parentheses, at least 8 digits
-        if (!/^\+?[0-9\s\-()]{8,}$/.test(orderForm.phone) || digitsOnly.length < 12 || digitsOnly.length > 13) {
+        // Check if format is valid (can contain +, digits, spaces, dashes, parentheses)
+        // AND check if digit count is between 9 and 13 (covers Slovak and international formats)
+        if (!(/^\+?[0-9\s\-()]+$/.test(orderForm.phone)) || (digitsOnly.length != 10 && digitsOnly.length != 12)) {
             errors.value.phone = 'Neplatný formát telefónneho čísla. Zadajte platné číslo, napr. +421234567893 alebo 0902349832.';
             hasError = true;
         }

@@ -196,8 +196,7 @@ const getStatusText = (status: string) => {
                                     <span class="ml-2">{{ props.reservation.guest_name }}</span>
                                 </p>
                                 <p v-if="reservation.additional_info != '' && reservation.additional_info != null">
-                                    <strong class="text-muted-foreground">Info:</strong>
-                                    <span class="ml-2">{{ props.reservation.additional_info }}</span>
+                                    <span>{{ props.reservation.additional_info }}</span>
                                 </p>
                             </div>
                         </div>
