@@ -9,7 +9,7 @@ defineProps<Props>();
     <main class="max-w flex justify-center opacity-100 transition-opacity duration-750 starting:opacity-0">
         <div class="flex flex-col justify-center text-center dark:text-white z-10 gap-2 my-6 w-full max-w-[335px] text-sm lg:max-w-4xl">
             <div class="mb-4">
-                V prípade technických problémov kontaktuj <a href="mailto:podpora@farskyplesciernavoda.sk" target="_blank" class="underline">podpora@farskyplesciernavoda.sk</a>
+                V prípade technických problémov kontaktujte <a href="mailto:podpora@farskyplesciernavoda.sk" target="_blank" class="underline">podpora@farskyplesciernavoda.sk</a>
             </div>
             <div>
                 <div>

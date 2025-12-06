@@ -7,6 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import EventCard from '@/components/order/EventCard.vue';
 import QrcodeVue from 'qrcode.vue';
 import { Button } from '@/components/ui/button';
+import ContactSection from '@/components/order/ContactSection.vue';
 
 // import { create } from '@/routes/reservation';
 
@@ -176,16 +177,13 @@ const currentQrUrl = computed(() => {
                         <Alert class="">
                             <AlertTitle class="mb-1 font-bold"
                                 ><i class="fas fa-info-circle mr-2"></i>
-                                Potvrdenie platby môže trvať až 7
-                                dní</AlertTitle
+                                Prosíme, aby ste platbu vykonali čo najskôr
+                                </AlertTitle
                             >
                             <AlertDescription>
-                                Platby sú overované manuálne. Dáme Vám vedieť
-                                emailom, keď bude Vaša platba overená. V prípade
-                                otázok kontaktujte organizátora: <br/>
-                                {{ props.event.contact_name }} -
-                                {{ props.event.contact_email }}
-                                {{ props.event.contact_phone }}
+                                Platby sú overované manuálne spravidla raz týždenne. Dáme Vám vedieť
+                                emailom, keď bude Vaša platba overená.
+                                <b>Objednávka bude zrušená, ak platba nebude prijatá do 5 dní od vytvorenia objednávky.</b>
                             </AlertDescription>
                         </Alert>
                     </div>
@@ -267,6 +265,7 @@ const currentQrUrl = computed(() => {
                         </h2>
                         <p class="mb-6">Objednávka bola zrušená</p>
                     </div>
+                    <ContactSection :event="props.event" />
                 </div>
             </div>
         </div>
