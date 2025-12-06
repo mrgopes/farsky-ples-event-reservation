@@ -64,5 +64,10 @@ Route::get('order/{order:url_slug}/confirm', [OrderController::class, 'confirm']
 Route::post('order/{order:url_slug}/confirm', [OrderController::class, 'confirmOrder'])->middleware(['auth'])->name('order.confirm.post');
 Route::post('order/{order:url_slug}/cancel', [OrderController::class, 'cancelOrder'])->middleware(['auth'])->name('order.cancel');
 
+// CSV import routes
+Route::get('event/{event:url_slug}/import-csv', [OrderController::class, 'showImportCsv'])->middleware(['auth'])->name('event.import-csv');
+Route::post('event/{event:url_slug}/import-csv/preview', [OrderController::class, 'previewCsv'])->middleware(['auth'])->name('event.import-csv.preview');
+Route::post('event/{event:url_slug}/import-csv/confirm', [OrderController::class, 'confirmCsv'])->middleware(['auth'])->name('event.import-csv.confirm');
+
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

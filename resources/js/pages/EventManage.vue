@@ -22,7 +22,8 @@ import {
     ShieldIcon,
     ChevronLeftIcon,
     ChevronRightIcon,
-    SearchIcon
+    SearchIcon,
+    UploadIcon
 } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -133,6 +134,43 @@ const collaboratorForm = useForm({
     user_id: '',
     role: 'manager',
 });
+
+const csvForm = useForm({
+    csv_file: null as File | null,
+});
+
+const csvFileInput = ref<HTMLInputElement | null>(null);
+const isCsvDialogOpen = ref(false);
+
+const openCsvDialog = () => {
+    csvForm.reset();
+    csvForm.clearErrors();
+    isCsvDialogOpen.value = true;
+};
+
+const handleCsvFileChange = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    if (target.files && target.files.length > 0) {
+        csvForm.csv_file = target.files[0];
+    }
+};
+
+const submitCsvImport = () => {
+    if (!csvForm.csv_file) {
+        return;
+    }
+
+    csvForm.post(`/event/${props.event.url_slug}/import-csv`, {
+        preserveScroll: true,
+        onSuccess: () => {
+            isCsvDialogOpen.value = false;
+            csvForm.reset();
+            if (csvFileInput.value) {
+                csvFileInput.value.value = '';
+            }
+        },
+    });
+};
 
 const openCreateDialog = () => {
     editingTicket.value = null;
@@ -488,7 +526,16 @@ const getTotalTicketCount = (order: Order) => {
 
             <!-- Orders Section -->
             <div class="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border p-6 bg-card">
-                <h2 class="text-2xl font-bold mb-4">Objednávky</h2>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-2xl font-bold">Objednávky</h2>
+                    <Link
+                        :href="`/event/${event.url_slug}/import-csv`"
+                        class="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-white transition-all hover:bg-purple-700"
+                    >
+                        <UploadIcon class="w-4 h-4" />
+                        Importovať CSV
+                    </Link>
+                </div>
 
                 <!-- Filters -->
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
@@ -809,6 +856,49 @@ const getTotalTicketCount = (order: Order) => {
                             class="px-4 py-2 cursor-pointer bg-blue-600 text-white transition-all hover:bg-blue-700"
                         >
                             Pridať
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <!-- CSV Import Dialog -->
+            <Dialog v-model:open="isCsvDialogOpen">
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>
+                            Importovať rezervácie z CSV
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div class="grid gap-4">
+                        <div>
+                            <Label for="csv_file">CSV súbor</Label>
+                            <Input
+                                id="csv_file"
+                                type="file"
+                                accept=".csv"
+                                @change="handleCsvFileChange"
+                                placeholder="Vyberte CSV súbor"
+                                :class="{ 'border-red-500': csvForm.errors.csv_file }"
+                                ref="csvFileInput"
+                            />
+                            <p v-if="csvForm.errors.csv_file" class="mt-1 text-sm text-red-500">
+                                {{ csvForm.errors.csv_file }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-2 mt-4">
+                        <Button
+                            @click="isCsvDialogOpen = false"
+                            variant="outline"
+                            class="px-4 py-2 cursor-pointer"
+                        >
+                            Zrušiť
+                        </Button>
+                        <Button
+                            @click="submitCsvImport"
+                            class="px-4 py-2 cursor-pointer bg-blue-600 text-white transition-all hover:bg-blue-700"
+                        >
+                            Importovať
                         </Button>
                     </div>
                 </DialogContent>
