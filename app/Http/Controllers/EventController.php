@@ -113,6 +113,7 @@ class EventController extends Controller
 
         $eventData = $event->toArray();
         $eventData['user_role'] = $userRole;
+        $eventData['reserved_seats'] = $event->computeReservedSeats();
 
         return Inertia::render('EventManage', [
             'event' => $eventData,

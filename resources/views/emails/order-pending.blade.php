@@ -13,7 +13,7 @@
     <div class="order-number">
         <strong>IBAN:</strong> {{ $order->event->bank_account }}<br>
         <strong>Variabilný symbol:</strong> {{ $order->variable_symbol }} <br>
-        <strong>Suma:</strong> {{ number_format($order->getTotalPrice(), 2) }} €
+        <strong>Suma:</strong> {{ number_format($order->getTotalPrice(), 2, ',', ' ') }} €
     </div>
 
     <p>Pre zobrazenie stavu objednávky a detailných informácií kliknite na tlačidlo nižšie:</p>
@@ -35,24 +35,5 @@
         V prípade akýchkoľvek otázok nás neváhajte kontaktovať.
     </p>
 
-    @if($order->event->contact_email || $order->event->contact_phone)
-        <div class="info-section">
-            <h3>Kontakt</h3>
-            @if($order->event->contact_name)
-                <div class="detail-row">
-                    <span class="label">Meno:</span> {{ $order->event->contact_name }}
-                </div>
-            @endif
-            @if($order->event->contact_email)
-                <div class="detail-row">
-                    <span class="label">Email:</span> {{ $order->event->contact_email }}
-                </div>
-            @endif
-            @if($order->event->contact_phone)
-                <div class="detail-row">
-                    <span class="label">Telefón:</span> {{ $order->event->contact_phone }}
-                </div>
-            @endif
-        </div>
-    @endif
+    @include('emails.partials.contact-info')
 @endsection

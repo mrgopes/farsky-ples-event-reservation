@@ -3,7 +3,7 @@
 @section('content')
     <p>Dobrý deň {{ $order->name }},</p>
 
-    <p>Ďakujeme za Vašu objednávku! Toto je potvrdenie Vašej rezervácie.</p>
+    <p>Ďakujeme za Vašu objednávku! Toto je potvrdenie jej zaplatenia.</p>
 
     <div class="info-section">
         <h3>Informácie o podujatí</h3>
@@ -114,24 +114,5 @@
         V prípade akýchkoľvek otázok nás neváhajte kontaktovať.
     </p>
 
-    @if($order->event->contact_email || $order->event->contact_phone)
-    <div class="info-section">
-        <h3>Kontakt</h3>
-        @if($order->event->contact_name)
-        <div class="detail-row">
-            <span class="label">Meno:</span> {{ $order->event->contact_name }}
-        </div>
-        @endif
-        @if($order->event->contact_email)
-        <div class="detail-row">
-            <span class="label">Email:</span> {{ $order->event->contact_email }}
-        </div>
-        @endif
-        @if($order->event->contact_phone)
-        <div class="detail-row">
-            <span class="label">Telefón:</span> {{ $order->event->contact_phone }}
-        </div>
-        @endif
-    </div>
-    @endif
+    @include('emails.partials.contact-info')
 @endsection

@@ -76,6 +76,7 @@ interface Event {
     location: Location;
     tickets: Ticket[];
     orders: Order[];
+    reserved_seats: number;
 }
 
 const props = defineProps<{
@@ -186,11 +187,7 @@ const getStatusBadge = (status: string) => {
     }
 };
 
-const totalReservations = props.event.orders
-    .filter(o => o.status !== 'cancelled')
-    .reduce((sum, order) => {
-        return sum + order.reservations.length;
-    }, 0);
+const totalReservations = props.event.reserved_seats;
 
 const confirmedOrders = props.event.orders.filter(o => o.status === 'paid').length;
 const pendingOrders = props.event.orders.filter(o => o.status === 'pending').length;

@@ -1,30 +1,28 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Objednávka zrušená</title>
-</head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h1 style="color: #e74c3c;">Objednávka zrušená</h1>
+@extends('emails.layout', ['heading' => 'Objednávka zrušená', 'title' => 'Objednávka zrušená'])
 
-        <p>Dobrý deň {{ $order->name }},</p>
+@section('content')
+    <p>Dobrý deň {{ $order->name }},</p>
 
-        <p>Vaša objednávka č. <strong>{{ $order->variable_symbol }}</strong> pre podujatie <strong>{{ optional($order->event)->title }}</strong> bola zrušená.</p>
+    <p>Vaša objednávka č. <strong>{{ $order->variable_symbol }}</strong> pre podujatie <strong>{{ optional($order->event)->title }}</strong> bola zrušená.</p>
 
-        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
-            <h3 style="margin-top: 0;">Detaily podujatia:</h3>
-            <p style="margin: 5px 0;"><strong>Názov:</strong> {{ optional($order->event)->title }}</p>
-            <p style="margin: 5px 0;"><strong>Dátum:</strong> {{ optional(optional($order->event)->start_time) ? \Carbon\Carbon::parse($order->event->start_time)->format('d.m.Y H:i') : '' }}</p>
-            @if(optional($order->event)->location)
-            <p style="margin: 5px 0;"><strong>Miesto:</strong> {{ optional($order->event->location)->name }}</p>
-            @endif
+    <p style="color: #e74c3c; font-weight: bold;">Častý dôvod na zrušenie objednávky je jej nezaplatenie včas.</p>
+
+    <div class="info-section">
+        <h3>Detaily podujatia</h3>
+        <div class="detail-row">
+            <span class="label">Názov:</span> {{ optional($order->event)->title }}
         </div>
-
-        <p>Ak máte akékoľvek otázky, neváhajte nás kontaktovať.</p>
-
-        <p>S pozdravom,<br>{{ config('app.name') }}</p>
+        <div class="detail-row">
+            <span class="label">Dátum:</span> {{ optional(optional($order->event)->start_time) ? \Carbon\Carbon::parse($order->event->start_time)->format('d.m.Y H:i') : '' }}
+        </div>
+        @if(optional($order->event)->location)
+        <div class="detail-row">
+            <span class="label">Miesto:</span> {{ optional($order->event->location)->address }}
+        </div>
+        @endif
     </div>
-</body>
-</html>
 
+    <p>Ak máte akékoľvek otázky alebo si myslíte, že ide o omyl, neváhajte nás kontaktovať.</p>
+
+    @include('emails.partials.contact-info')
+@endsection
