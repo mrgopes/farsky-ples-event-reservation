@@ -46,3 +46,5 @@ In case of issues feel free to open a pull request as well.
 ## License
 This project is licensed under the GPLv3 License. See the LICENSE file for details.
 The author is not responsible for any damages caused by the use of this software.
+
+Developed by Michal Barnáš in 2025.
