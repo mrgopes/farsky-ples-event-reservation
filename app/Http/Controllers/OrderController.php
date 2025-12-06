@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Mail\OrderConfirmation;
 use App\Mail\OrderPending;
+use App\Mail\OrderCancelled;
 use App\Models\Event;
 use App\Models\Order;
 use App\Models\Reservation;
@@ -64,7 +65,7 @@ class OrderController extends Controller
 
     public function store(Request $request, Event $event)
     {
-        $data = $request->validate([
+        $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email'],
             'phone' => ['required', 'string', 'max:30'],
@@ -73,7 +74,6 @@ class OrderController extends Controller
             'guests' => ['required', 'array'],
         ]);
 
-        // Check if requested seats are already reserved by active orders
         $requestedSeats = array_values($request->seats);
         $reservedSeats = Reservation::whereIn('seat_number', $requestedSeats)
             ->whereHas('order', function ($query) use ($event) {
@@ -86,6 +86,21 @@ class OrderController extends Controller
         if (!empty($reservedSeats)) {
             return back()->withErrors([
                 'seats' => 'Niektoré z vybratých miest sú už rezervované: ' . implode(', ', $reservedSeats)
+            ])->withInput();
+        }
+
+        // Capacity check: count currently reserved seats for this event (exclude cancelled orders)
+        $currentlyReservedCount = Reservation::whereHas('order', function ($query) use ($event) {
+            $query->where('event_id', $event->id)
+                  ->where('status', '!=', 'cancelled');
+        })->count();
+
+        $requestedCount = count($requestedSeats);
+
+        if (($currentlyReservedCount + $requestedCount) > ($event->seats_total ?? 0)) {
+            $available = max(0, ($event->seats_total ?? 0) - $currentlyReservedCount);
+            return back()->withErrors([
+                'seats' => 'Nie je dosť voľných miest. Zostáva ' . $available . ' miest.'
             ])->withInput();
         }
 
@@ -166,6 +181,20 @@ class OrderController extends Controller
         }
     }
 
+    protected function sendOrderCancelledEmail(Order $order): void
+    {
+        try {
+            // Load relationships needed for the email
+            $order->load('event');
+
+            // Send the email
+            Mail::to($order->email)->send(new \App\Mail\OrderCancelled($order));
+        } catch (\Exception $e) {
+            // Log the error but don't fail the order creation
+            Log::error('Failed to send order cancelled email: ' . $e->getMessage());
+        }
+    }
+
     public function sent(Order $order)
     {
         $order->load('event.location', 'tickets', 'reservations');
@@ -208,5 +237,69 @@ class OrderController extends Controller
         $this->sendOrderConfirmationEmail($order);
 
         return json_encode(['status' => 'success', 'message' => 'Order confirmed and email sent.']);
+    }
+
+    /**
+     * Confirm an order from the event management page
+     */
+    public function confirmOrder(Request $request, $url_slug)
+    {
+        $order = Order::where('url_slug', $url_slug)->firstOrFail();
+        $event = $order->event;
+
+        // Check if user has permission to manage this event
+        $user = $request->user();
+        $hasAccess = $event->user_id === $user->id ||
+                     $event->users()->where('user_id', $user->id)->whereIn('role', ['owner', 'manager'])->exists();
+
+        if (!$hasAccess) {
+            abort(403, 'Nemáte oprávnenie na správu tohto podujatia.');
+        }
+
+        // Update order status
+        $order->update([
+            'status' => 'paid'
+        ]);
+
+        // Generate QR codes for reservations if not already generated
+        $order->reservations->each(function ($reservation) {
+            if (!$reservation->qr_code) {
+                $reservation->qr_code = (string) Str::uuid();
+                $reservation->save();
+            }
+        });
+
+        // Send confirmation email
+        $this->sendOrderConfirmationEmail($order);
+
+        return redirect()->back()->with('success', 'Objednávka bola úspešne potvrdená!');
+    }
+
+    /**
+     * Cancel an order from the event management page
+     */
+    public function cancelOrder(Request $request, $url_slug)
+    {
+        $order = Order::where('url_slug', $url_slug)->firstOrFail();
+        $event = $order->event;
+
+        // Check if user has permission to manage this event
+        $user = $request->user();
+        $hasAccess = $event->user_id === $user->id ||
+                     $event->users()->where('user_id', $user->id)->whereIn('role', ['owner', 'manager'])->exists();
+
+        if (!$hasAccess) {
+            abort(403, 'Nemáte oprávnenie na správu tohto podujatia.');
+        }
+
+        // Update order status
+        $order->update([
+            'status' => 'cancelled'
+        ]);
+
+        // Send cancellation email to the customer
+        $this->sendOrderCancelledEmail($order);
+
+        return redirect()->back()->with('success', 'Objednávka bola zrušená.');
     }
 }

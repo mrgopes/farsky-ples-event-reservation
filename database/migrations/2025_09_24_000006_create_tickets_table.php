@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('event_id')->constrained('events')->onDelete('cascade');
 
             $table->string('title');
-            $table->integer('price');
+            $table->float('price');
             $table->integer('reservations')->default(1);
         });
     }

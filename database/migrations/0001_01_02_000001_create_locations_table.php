@@ -16,7 +16,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->string('address');
-            $table->string('svg_map');
+            $table->enum('svg_map', ['/sedenie/vajnory-2026.svg', '/sedenie/seatmap.svg']);
             $table->integer('places_total');
         });
     }

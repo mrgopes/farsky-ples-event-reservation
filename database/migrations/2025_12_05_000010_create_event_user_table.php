@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('event_id')->constrained('events')->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->string('role')->default('manager');
+            $table->enum('role', ['manager', 'staff'])->default('manager');
             $table->timestamps();
 
             $table->unique(['event_id', 'user_id']);
@@ -34,4 +34,3 @@ return new class extends Migration
         Schema::dropIfExists('event_user');
     }
 };
-

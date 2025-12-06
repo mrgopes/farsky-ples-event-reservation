@@ -18,6 +18,7 @@ class Event extends Model
         'seats_total',
         'title',
         'url_slug',
+        'description',
         'start_time',
         'registration_start',
         'registration_end',
@@ -77,5 +78,42 @@ class Event extends Model
     public function getRouteKeyName(): string
     {
         return 'url_slug';
+    }
+
+    public function computeReservedSeats() {
+        $tickets = $this->tickets->map(function ($ticket) {
+            $reservationCount = 0;
+
+            foreach ($this->orders as $order) {
+                if ($order->status === 'cancelled') {
+                    continue;
+                }
+
+                $orderTicket = $order->tickets->where('id', $ticket->id)->first();
+                if ($orderTicket) {
+                    $reservationCount += $orderTicket->pivot->amount ?? 0;
+                }
+            }
+
+            return [
+                'id' => $ticket->id,
+                'title' => $ticket->title,
+                'price' => $ticket->price,
+                'reservations' => $reservationCount,
+            ];
+        });
+
+        $totalReservedSeats = 0;
+        foreach ($this->orders as $order) {
+            if ($order->status === 'cancelled') {
+                continue;
+            }
+
+            foreach ($order->tickets as $ticket) {
+                $totalReservedSeats += $ticket->pivot->amount ?? 0;
+            }
+        }
+
+        return $totalReservedSeats;
     }
 }

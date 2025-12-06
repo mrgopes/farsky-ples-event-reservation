@@ -6,6 +6,7 @@ import EventLayout from '@/layouts/EventLayout.vue';
 import { create } from "@/routes/order";
 import { Link } from '@inertiajs/vue3';
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import { marked } from 'marked';
 
 interface Ticket {
   id: number;
@@ -24,6 +25,7 @@ interface Event {
   registration_end?: string;
   user_id?: number;
   multiple_reservations_per_ticket: boolean;
+  description?: string;
 }
 
 interface Location {
@@ -32,7 +34,7 @@ interface Location {
   address: string;
 }
 
-const props = defineProps<{ event: Event; tickets: Ticket[]; location: Location }>();
+const props = defineProps<{ event: Event; tickets: Ticket[]; location: Location, places_left: number }>();
 
 const formattedStartTime = computed(() => {
   if (!props.event.start_time) return '';
@@ -49,14 +51,6 @@ const formattedStartTime = computed(() => {
 const formattedLocation = computed(() => {
   if (!props.location.address) return '';
   return props.location.address.replace(/\r?\\n|\r/g, ', ');
-});
-
-const totalReservedSeats = computed(() => {
-  return props.tickets.reduce((sum, ticket) => sum + ticket.reservations, 0);
-});
-
-const availableSeats = computed(() => {
-  return props.event.seats_total - totalReservedSeats.value;
 });
 
 const isWithinRegistrationWindow = computed(() => {
@@ -90,7 +84,7 @@ const registrationEnded = computed(() => {
 });
 
 const isSoldOut = computed(() => {
-  return availableSeats.value <= 0;
+  return props.places_left <= 0;
 });
 
 const canPurchase = computed(() => {
@@ -113,6 +107,10 @@ const buttonText = computed(() => {
   return 'Kúpiť lístok na toto podujatie';
 });
 
+const renderedDescription = computed(() => {
+  if (!props.event.description) return '';
+  return marked.parse(props.event.description, { async: false }) as string;
+});
 </script>
 
 <template>
@@ -126,10 +124,13 @@ const buttonText = computed(() => {
                 </p>
             </div>
 
-<!--            <div>-->
-<!--                <h2 class="dark:text-white text-3xl font-bold">O akcii</h2>-->
-<!--                <p class="dark:text-gray-200">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec et eros sit amet leo fermentum porta sit amet eu magna. Suspendisse potenti. Sed eleifend ac nibh ac auctor. Cras pellentesque felis metus, et ullamcorper magna dapibus quis. Pellentesque id consequat diam. Phasellus lacinia ullamcorper nisi at porta. Nam in velit ut tellus faucibus malesuada quis ac libero. </p>-->
-<!--            </div>-->
+            <div>
+                <h2 class="dark:text-white text-3xl font-bold">O akcii</h2>
+                <div
+                    v-html="renderedDescription"
+                    class="mt-3 dark:text-gray-200 markdown-content"
+                ></div>
+            </div>
 
             <div>
                 <h2 class="dark:text-white text-3xl font-bold">Dostupné lístky</h2>

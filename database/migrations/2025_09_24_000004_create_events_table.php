@@ -22,13 +22,14 @@ return new class extends Migration
             $table->dateTime('registration_start');
             $table->dateTime('registration_end');
             $table->string('contact_email');
-            $table->string('contact_phone');
+            $table->string('contact_phone')->nullable();
             $table->string('contact_name');
             $table->string('bank_account');
             $table->foreignId('location_id')->constrained('locations')->restrictOnDelete();
             $table->boolean('multiple_reservations_per_ticket')->default(false);
             $table->text('description')->nullable();
             $table->json('additional_information')->nullable();
+            $table->string('background_image_path')->nullable();
         });
     }
 
