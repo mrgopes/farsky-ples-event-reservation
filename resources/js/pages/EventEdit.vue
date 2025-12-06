@@ -28,6 +28,7 @@ interface Event {
     contact_phone: string | null;
     bank_account: string;
     multiple_reservations_per_ticket: boolean;
+    background_image_path?: string | null;
 }
 
 const props = defineProps<{
@@ -75,6 +76,8 @@ const form = useForm({
     contact_phone: props.event.contact_phone || '',
     bank_account: props.event.bank_account,
     multiple_reservations_per_ticket: props.event.multiple_reservations_per_ticket,
+    background_image: null as File | null,
+    remove_background_image: false,
 });
 
 const generateSlug = () => {
@@ -86,6 +89,19 @@ const generateSlug = () => {
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/^-+|-+$/g, '');
     }
+};
+
+const handleFileChange = (e: InputEvent) => {
+    const target = e.target as HTMLInputElement;
+    if (target.files && target.files[0]) {
+        form.background_image = target.files[0];
+        form.remove_background_image = false;
+    }
+};
+
+const removeBackgroundImage = () => {
+    form.background_image = null;
+    form.remove_background_image = true;
 };
 
 const submit = () => {
@@ -315,6 +331,79 @@ const submit = () => {
                                 <p v-if="form.errors.bank_account" class="text-sm text-red-500">
                                     {{ form.errors.bank_account }}
                                 </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Background Image -->
+                    <div class="space-y-4">
+                        <h2 class="text-xl font-semibold">Obrázok na pozadí</h2>
+
+                        <!-- Current Background Image -->
+                        <div v-if="event.background_image_path && !form.remove_background_image" class="space-y-2">
+                            <Label>Aktuálny obrázok na pozadí</Label>
+                            <div class="relative">
+                                <img
+                                    :src="`/storage/${event.background_image_path}`"
+                                    alt="Pozadie podujatia"
+                                    class="h-48 w-full rounded-lg object-cover"
+                                />
+                                <Button
+                                    type="button"
+                                    variant="destructive"
+                                    @click="removeBackgroundImage"
+                                    class="absolute top-2 right-2"
+                                >
+                                    Odstrániť
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <Label>{{ event.background_image_path && !form.remove_background_image ? 'Nahradiť obrázok' : 'Nahrať obrázok' }}</Label>
+                            <input
+                                id="background_image"
+                                type="file"
+                                accept="image/jpeg,image/png,image/jpg,image/webp"
+                                @change="handleFileChange"
+                                class="hidden"
+                            />
+                            <Label
+                                for="background_image"
+                                class="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 dark:bg-gray-800 dark:border-gray-600 p-6 text-center text-gray-500 dark:text-gray-400 transition-all hover:bg-gray-100 dark:hover:bg-gray-700 mt-2"
+                            >
+                                <svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                </svg>
+                                <span class="text-sm font-medium">
+                                    {{ form.background_image ? 'Nový obrázok vybraný' : 'Kliknite pre výber obrázka' }}
+                                </span>
+                                <span class="text-xs text-gray-400 mt-1">
+                                    JPEG, PNG, JPG, WEBP (max. 5MB)
+                                </span>
+                            </Label>
+                            <p v-if="form.errors.background_image" class="mt-2 text-sm text-red-500">
+                                {{ form.errors.background_image }}
+                            </p>
+                        </div>
+
+                        <!-- Preview of New Image -->
+                        <div v-if="form.background_image" class="space-y-2">
+                            <Label>Náhľad nového obrázka</Label>
+                            <div class="relative">
+                                <img
+                                    :src="URL.createObjectURL(form.background_image)"
+                                    alt="Náhľad obrázka"
+                                    class="h-48 w-full rounded-lg object-cover"
+                                />
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    @click="form.background_image = null"
+                                    class="absolute top-2 right-2"
+                                >
+                                    Zrušiť
+                                </Button>
                             </div>
                         </div>
                     </div>

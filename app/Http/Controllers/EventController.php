@@ -7,6 +7,7 @@ use App\Models\Event;
 use App\Models\Location;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class EventController extends Controller
 {
@@ -41,12 +42,19 @@ class EventController extends Controller
             'contact_phone' => 'nullable|string|max:255',
             'bank_account' => 'required|string|max:255',
             'multiple_reservations_per_ticket' => 'boolean',
+            'background_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
         // If seats_total is not provided, infer it from the location
         if (empty($validated['seats_total'])) {
             $location = Location::findOrFail($validated['location_id']);
             $validated['seats_total'] = $location->places_total;
+        }
+
+        // Handle background image upload
+        $backgroundImagePath = null;
+        if ($request->hasFile('background_image')) {
+            $backgroundImagePath = $request->file('background_image')->store('events/backgrounds', 'public');
         }
 
         $event = Event::create([
@@ -64,6 +72,7 @@ class EventController extends Controller
             'contact_phone' => $validated['contact_phone'] ?? null,
             'bank_account' => $validated['bank_account'],
             'multiple_reservations_per_ticket' => $validated['multiple_reservations_per_ticket'] ?? false,
+            'background_image_path' => $backgroundImagePath,
         ]);
 
 
@@ -161,7 +170,29 @@ class EventController extends Controller
             'contact_phone' => 'nullable|string|max:255',
             'bank_account' => 'required|string|max:255',
             'multiple_reservations_per_ticket' => 'boolean',
+            'background_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'remove_background_image' => 'boolean',
         ]);
+
+        // Handle background image upload
+        $backgroundImagePath = $event->background_image_path;
+
+        // If user wants to remove the background image
+        if ($request->boolean('remove_background_image')) {
+            if ($backgroundImagePath) {
+                Storage::disk('public')->delete($backgroundImagePath);
+            }
+            $backgroundImagePath = null;
+        }
+
+        // If a new image is uploaded
+        if ($request->hasFile('background_image')) {
+            // Delete old image if exists
+            if ($backgroundImagePath) {
+                Storage::disk('public')->delete($backgroundImagePath);
+            }
+            $backgroundImagePath = $request->file('background_image')->store('events/backgrounds', 'public');
+        }
 
         $event->update([
             'title' => $validated['title'],
@@ -175,6 +206,7 @@ class EventController extends Controller
             'contact_phone' => !empty($validated['contact_phone']) ? $validated['contact_phone'] : null,
             'bank_account' => $validated['bank_account'],
             'multiple_reservations_per_ticket' => $validated['multiple_reservations_per_ticket'] ?? false,
+            'background_image_path' => $backgroundImagePath,
         ]);
 
         return redirect()->route('event.manage', $event->url_slug)
@@ -205,7 +237,8 @@ class EventController extends Controller
                 'registration_end',
                 'user_id',
                 'description',
-                'multiple_reservations_per_ticket'
+                'multiple_reservations_per_ticket',
+                'background_image_path'
             ])),
             'location' => $event->location,
             'tickets' => $tickets,

@@ -26,6 +26,7 @@ interface Event {
   user_id?: number;
   multiple_reservations_per_ticket: boolean;
   description?: string;
+  background_image_path?: string;
 }
 
 interface Location {
@@ -111,10 +112,15 @@ const renderedDescription = computed(() => {
   if (!props.event.description) return '';
   return marked.parse(props.event.description, { async: false }) as string;
 });
+
+const backgroundImageUrl = computed(() => {
+  if (!props.event.background_image_path) return null;
+  return `/storage/${props.event.background_image_path}`;
+});
 </script>
 
 <template>
-    <EventLayout>
+    <EventLayout :background="backgroundImageUrl ?? undefined">
         <div class="flex flex-col gap-8">
             <div>
                 <h1 class="dark:text-white text-6xl font-extrabold">{{ props.event.title }}</h1>
@@ -185,3 +191,6 @@ const renderedDescription = computed(() => {
         </div>
     </EventLayout>
 </template>
+
+<style scoped>
+</style>

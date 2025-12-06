@@ -43,6 +43,7 @@ const form = useForm({
     contact_phone: '',
     bank_account: '',
     multiple_reservations_per_ticket: false,
+    background_image: null as File | null,
 });
 
 const generateSlug = () => {
@@ -53,6 +54,13 @@ const generateSlug = () => {
             .replace(/[\u0300-\u036f]/g, '')
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/^-+|-+$/g, '');
+    }
+};
+
+const handleFileChange = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    if (target.files && target.files[0]) {
+        form.background_image = target.files[0];
     }
 };
 
@@ -220,6 +228,23 @@ const submit = () => {
                             <Label for="multiple_reservations" class="cursor-pointer font-normal">
                                 Povoliť viacero rezervácií na jeden lístok
                             </Label>
+                        </div>
+
+                        <div class="space-y-2">
+                            <Label for="background_image">Pozadie podujatia</Label>
+                            <Input
+                                id="background_image"
+                                type="file"
+                                accept="image/jpeg,image/png,image/jpg,image/webp"
+                                @change="handleFileChange"
+                                :class="{ 'border-red-500': form.errors.background_image }"
+                            />
+                            <p class="text-sm text-gray-500">
+                                Podporované formáty: JPEG, PNG, JPG, WEBP (max. 5MB)
+                            </p>
+                            <p v-if="form.errors.background_image" class="text-sm text-red-500">
+                                {{ form.errors.background_image }}
+                            </p>
                         </div>
                     </div>
 

@@ -28,6 +28,7 @@ class Event extends Model
         'bank_account',
         'location_id',
         'multiple_reservations_per_ticket',
+        'background_image_path',
     ];
 
     protected $casts = [
