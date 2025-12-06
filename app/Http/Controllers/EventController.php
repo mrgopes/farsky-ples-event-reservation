@@ -132,6 +132,52 @@ class EventController extends Controller
     }
 
     /**
+     * Show the print view for the event seat map.
+     */
+    public function print(Request $request, $url_slug)
+    {
+        $event = Event::where('url_slug', $url_slug)
+            ->with([
+                'location',
+                'orders' => function($query) {
+                    $query->whereIn('status', ['paid', 'pending'])
+                          ->with('reservations');
+                }
+            ])
+            ->firstOrFail();
+
+        // Check if user has access to view this event
+        $user = $request->user();
+        $hasAccess = $event->user_id === $user->id ||
+                     $event->users()->where('user_id', $user->id)->exists();
+
+        if (!$hasAccess) {
+            abort(403, 'Nemáte oprávnenie na zobrazenie tohto podujatia.');
+        }
+
+        // Collect all reservations with seat numbers and guest names
+        $reservations = $event->orders
+            ->flatMap(function($order) {
+                return $order->reservations->map(function($reservation) use ($order) {
+                    return [
+                        'seat_number' => $reservation->seat_number,
+                        'guest_name' => $reservation->guest_name,
+                        'additional_information' => $reservation->computeAdditionalInformation(),
+                        'order_name' => $order->name,
+                        'order_email' => $order->email,
+                        'order_status' => $order->status,
+                    ];
+                });
+            })
+            ->sortBy('seat_number');
+
+        return view('event.print', [
+            'event' => $event,
+            'reservations' => $reservations,
+        ]);
+    }
+
+    /**
      * Show the form for editing an event.
      */
     public function edit(Request $request, $url_slug)

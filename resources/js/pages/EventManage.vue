@@ -22,7 +22,8 @@ import {
     ChevronRightIcon,
     SearchIcon,
     ShieldIcon,
-    UploadIcon
+    UploadIcon,
+    PrinterIcon
 } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -127,6 +128,9 @@ const isOrderDetailsOpen = ref(false);
 const selectedOrder = ref<Order | null>(null);
 
 const isCollaboratorDialogOpen = ref(false);
+
+const isPrintDialogOpen = ref(false);
+const printContainerRef = ref<HTMLElement | null>(null);
 
 const ticketForm = useForm({
     title: '',
@@ -336,6 +340,33 @@ const removeCollaborator = (userId: number) => {
         });
     }
 };
+
+const openPrintDialog = () => {
+    isPrintDialogOpen.value = true;
+};
+
+const printSeatMap = () => {
+    window.print();
+};
+
+const openPrintPage = () => {
+    window.open(`/event/${props.event.url_slug}/print`, '_blank');
+};
+
+// Get all reservations with seat numbers and guest names
+const allReservations = computed(() => {
+    return props.event.orders
+        .filter(o => o.status === 'paid' || o.status === 'pending')
+        .flatMap(order => order.reservations);
+});
+
+const reservedSeatsMap = computed(() => {
+    const map: Record<number, string> = {};
+    allReservations.value.forEach(res => {
+        map[res.seat_number] = res.guest_name;
+    });
+    return map;
+});
 </script>
 
 <template>
@@ -696,6 +727,56 @@ const removeCollaborator = (userId: number) => {
                 </div>
             </div>
 
+            <!-- Tickets Print Section -->
+            <div class="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border p-6 bg-card">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-2xl font-bold">Tlač plániku sedenia</h2>
+                    <Button
+                        @click="openPrintPage"
+                        class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white transition-all hover:bg-blue-700"
+                    >
+                        <PrinterIcon class="w-4 h-4" />
+                        Tlačiť
+                    </Button>
+                </div>
+
+                <div v-if="event.orders.length === 0" class="text-center py-8 text-muted-foreground">
+                    <TicketIcon class="w-12 h-12 mx-auto mb-3 opacity-50" />
+                    <p>Žiadne rezervácie na tlačenie</p>
+                </div>
+                <div v-else>
+                    <!-- Printable Seat Map -->
+                    <div
+                        v-if="isPrintDialogOpen"
+                        ref="printContainerRef"
+                        class="p-4 rounded-lg border border-sidebar-border/50 bg-muted/30"
+                    >
+                        <h3 class="text-lg font-semibold mb-3">Plánik sedenia</h3>
+                        <div class="grid grid-cols-4 gap-4">
+                            <div
+                                v-for="seat in event.seats_total"
+                                :key="seat"
+                                class="flex items-center justify-center p-2 border rounded-lg"
+                            >
+                                <div
+                                    v-if="reservedSeatsMap[seat]"
+                                    class="w-4 h-4 rounded-full bg-red-600"
+                                    title="Obsadené"
+                                ></div>
+                                <div
+                                    v-else
+                                    class="w-4 h-4 rounded-full bg-green-600"
+                                    title="Voľné"
+                                ></div>
+                                <span class="ml-2 text-sm" v-if="reservedSeatsMap[seat]">
+                                    {{ reservedSeatsMap[seat] }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Ticket Form Dialog -->
             <Dialog v-model:open="isDialogOpen">
                 <DialogContent>
@@ -940,3 +1021,28 @@ const removeCollaborator = (userId: number) => {
         </div>
     </AppLayout>
 </template>
+
+<style scoped>
+/* Print styles for seat map */
+@media print {
+    .print-container {
+        display: block !important;
+        page-break-after: always;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+
+    /* Hide the header and footer when printing */
+    @page {
+        margin: 0;
+        size: A4 landscape;
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+    }
+}
+</style>

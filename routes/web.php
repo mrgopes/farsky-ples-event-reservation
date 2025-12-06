@@ -26,6 +26,9 @@ Route::post('event', [EventController::class, 'store'])
 Route::get('event/{event:url_slug}/manage', [EventController::class, 'manage'])
     ->middleware(['auth', 'verified'])
     ->name('event.manage');
+Route::get('event/{event:url_slug}/print', [EventController::class, 'print'])
+    ->middleware(['auth', 'verified'])
+    ->name('event.print');
 Route::get('event/{event:url_slug}/edit', [EventController::class, 'edit'])
     ->middleware(['auth', 'verified'])
     ->name('event.edit');
