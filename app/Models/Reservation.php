@@ -28,4 +28,20 @@ class Reservation extends Model
     {
         return $this->belongsTo(Order::class);
     }
+
+    public function computeAdditionalInformation(): String
+    {
+        $event = $this->order->event;
+
+        $additionalInfo = '';
+
+        foreach ($event->getPlugins() as $pluginClass) {
+            $plugin = new $pluginClass();
+            if ($plugin->supports($event)) {
+                $additionalInfo .= $plugin->get($this) . ' ';
+            }
+        }
+
+        return trim($additionalInfo);
+    }
 }

@@ -24,6 +24,7 @@ interface Reservation {
     seat_number: number;
     guest_name: string;
     qr_code: string;
+    additional_information?: string;
 }
 
 interface Event {
@@ -150,7 +151,8 @@ const currentQrUrl = computed(() => {
                             v-for="reservation in props.reservations"
                             :key="'summary-seat-' + reservation.seat_number"
                         >
-                            Miesto {{ reservation.seat_number }} -
+                            Miesto {{ reservation.seat_number }}
+                            <span v-if="reservation.additional_information != '' && reservation.additional_information != null">({{ reservation.additional_information }})</span> -
                             {{ reservation.guest_name }}
                         </li>
                     </ul>

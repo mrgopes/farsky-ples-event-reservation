@@ -219,12 +219,18 @@ class OrderController extends Controller
             'event' => $shapedEvent,
             'tickets' => $tickets,
             'location' => $event->location,
-            'reservations' => $order->reservations->map->only(['id','seat_number','guest_name', 'qr_code']),
+            'reservations' => $order->reservations->map(function ($reservation) {
+                return array_merge(
+                    $reservation->only(['id','seat_number','guest_name', 'qr_code']),
+                    ['additional_information' => $reservation->computeAdditionalInformation()]
+                );
+            }),
         ]);
     }
 
     public function confirm(Order $order)
     {
+        return;
         $order->update([
             'status' => 'paid'
         ]);

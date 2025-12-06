@@ -13,6 +13,10 @@ class Event extends Model
 {
     use HasFactory;
 
+    private $plugins = [
+        'tables' => \App\Http\Plugins\TablesPlugin::class,
+    ];
+
     protected $fillable = [
         'user_id',
         'seats_total',
@@ -92,5 +96,10 @@ class Event extends Model
         }
 
         return $totalReservedSeats;
+    }
+
+    public function getPlugins(): array
+    {
+        return $this->plugins;
     }
 }

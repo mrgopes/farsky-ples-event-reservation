@@ -59,6 +59,7 @@ class ReservationController extends Controller
                 'seat_number' => $res->seat_number,
                 'guest_name' => $res->guest_name,
                 'qr_code' => $res->qr_code,
+                'additional_info' => $res->computeAdditionalInfo(),
             ];
         });
 
@@ -68,6 +69,7 @@ class ReservationController extends Controller
                 'seat_number' => $reservation->seat_number,
                 'guest_name' => $reservation->guest_name,
                 'qr_code' => $reservation->qr_code,
+                'additional_info' => $reservation->computeAdditionalInfo(),
             ],
             'order' => [
                 'id' => $reservation->order->id,
