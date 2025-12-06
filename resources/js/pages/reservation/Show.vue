@@ -20,6 +20,7 @@ interface Reservation {
     seat_number: number;
     guest_name: string;
     qr_code: string;
+    additional_info: string;
 }
 
 interface Event {
@@ -194,6 +195,10 @@ const getStatusText = (status: string) => {
                                     <strong class="text-muted-foreground">Meno hosťa:</strong>
                                     <span class="ml-2">{{ props.reservation.guest_name }}</span>
                                 </p>
+                                <p v-if="reservation.additional_info != '' && reservation.additional_info != null">
+                                    <strong class="text-muted-foreground">Info:</strong>
+                                    <span class="ml-2">{{ props.reservation.additional_info }}</span>
+                                </p>
                             </div>
                         </div>
 
@@ -287,7 +292,7 @@ const getStatusText = (status: string) => {
                                 >
                                     <div class="flex items-center justify-between">
                                         <div class="text-foreground">
-                                            <span class="font-bold">Miesto {{ res.seat_number }}</span>
+                                            <span class="font-bold">Miesto {{ res.seat_number }} <span v-if="res.additional_info != '' && res.additional_info != null">({{res.additional_info}})</span></span>
                                             <span class="mx-2">-</span>
                                             <span>{{ res.guest_name }}</span>
                                         </div>
