@@ -147,22 +147,20 @@ class TestSeeder extends Seeder
                 'amount' => $numSeatsInOrder,
             ]);
 
-            // Create reservations only for paid orders
-            if ($status === 'paid') {
-                for ($i = 0; $i < $numSeatsInOrder; $i++) {
-                    if ($currentReservations >= $targetReservations) {
-                        break;
-                    }
-
-                    \App\Models\Reservation::create([
-                        'order_id' => $order->id,
-                        'guest_name' => $orderUser->name,
-                        'seat_number' => $seatCounter,
-                    ]);
-
-                    $seatCounter++;
-                    $currentReservations++;
+            // Create reservations for all orders (matching ticket amount)
+            for ($i = 0; $i < $numSeatsInOrder; $i++) {
+                if ($currentReservations >= $targetReservations) {
+                    break;
                 }
+
+                \App\Models\Reservation::create([
+                    'order_id' => $order->id,
+                    'guest_name' => $orderUser->name,
+                    'seat_number' => $seatCounter,
+                ]);
+
+                $seatCounter++;
+                $currentReservations++;
             }
 
             $orderCount++;
@@ -179,6 +177,7 @@ class TestSeeder extends Seeder
         for ($i = 0; $i < $additionalOrders; $i++) {
             $orderUser = $allUsers->random();
             $status = rand(0, 1) ? 'cancelled' : 'pending';
+            $numTickets = rand(1, 4);
 
             $variableSymbol = str_pad(rand(1000000, 9999999), 10, '0', STR_PAD_LEFT);
             $urlSlug = \Illuminate\Support\Str::random(32);
@@ -194,16 +193,27 @@ class TestSeeder extends Seeder
             ]);
 
             $selectedTicket = $tickets[array_rand($tickets)];
-            $numTickets = rand(1, 4);
             $order->tickets()->attach($selectedTicket->id, [
                 'amount' => $numTickets,
             ]);
+
+            // Create reservations for these additional orders too
+            for ($j = 0; $j < $numTickets; $j++) {
+                \App\Models\Reservation::create([
+                    'order_id' => $order->id,
+                    'guest_name' => $orderUser->name,
+                    'seat_number' => $seatCounter,
+                ]);
+                $seatCounter++;
+            }
         }
 
         $finalCount = \App\Models\Reservation::whereHas('order', function ($query) use ($event) {
             $query->where('event_id', $event->id);
         })->count();
 
-        $this->command->info("  → Created {$finalCount} paid reservations, plus pending and cancelled orders");
+        $orderCountFinal = \App\Models\Order::where('event_id', $event->id)->count();
+
+        $this->command->info("  → Created {$orderCountFinal} orders with {$finalCount} total reservations");
     }
 }
