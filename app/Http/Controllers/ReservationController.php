@@ -9,19 +9,6 @@ use Inertia\Inertia;
 class ReservationController extends Controller
 {
     /**
-     * Show the QR code scanner page for staff members.
-     */
-    public function scan(Request $request)
-    {
-        // User must be authenticated
-        $user = $request->user();
-
-        return Inertia::render('reservation/Scan', [
-            'user' => $user,
-        ]);
-    }
-
-    /**
      * Show reservation details when a QR code is scanned.
      */
     public function show(Request $request, $qrCode)

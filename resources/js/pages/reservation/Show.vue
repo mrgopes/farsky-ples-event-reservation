@@ -6,7 +6,6 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import EventCard from '@/components/order/EventCard.vue';
 import QrcodeVue from 'qrcode.vue';
 import { Button } from '@/components/ui/button';
-import * as reservationRoutes from '@/routes/reservation';
 import * as eventRoutes from '@/routes/event';
 import { dashboard } from '@/routes';
 
@@ -106,15 +105,6 @@ const getStatusText = (status: string) => {
         <nav class="bg-white dark:bg-gray-800 shadow-sm">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-16">
-                    <div class="flex items-center gap-4">
-                        <Link
-                            :href="reservationRoutes.scan().url"
-                            class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                        >
-                            <i class="fas fa-arrow-left mr-2"></i>
-                            Späť na skenovanie
-                        </Link>
-                    </div>
                     <div class="flex items-center gap-4">
                         <Link
                             :href="eventRoutes.manage(props.event.url_slug).url"
@@ -312,18 +302,6 @@ const getStatusText = (status: string) => {
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Actions -->
-                <div class="flex justify-center gap-4">
-                    <Button
-                        @click="() => $inertia.visit(reservationRoutes.scan().url)"
-                        variant="outline"
-                        size="lg"
-                    >
-                        <i class="fas fa-qrcode mr-2"></i>
-                        Skenovať ďalší QR kód
-                    </Button>
                 </div>
             </div>
         </div>
