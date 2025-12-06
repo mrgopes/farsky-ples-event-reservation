@@ -1,4 +1,4 @@
-# Reservation system
+# Farsky Ples Event Reservation
 
 This is a simple reservation system for the purposes of the Parish Ball in Cierna Voda, Slovakia.
 Under the hood it's a Laravel app with Vue.js frontend via Inertia.js.
