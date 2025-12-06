@@ -5,7 +5,6 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import EventCard from '@/components/order/EventCard.vue';
 import QrcodeVue from 'qrcode.vue';
-import { Button } from '@/components/ui/button';
 import * as eventRoutes from '@/routes/event';
 import { dashboard } from '@/routes';
 
@@ -73,13 +72,13 @@ const totalPrice = computed(() => {
 const getStatusBadgeClass = (status: string) => {
     switch (status) {
         case 'paid':
-            return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+            return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
         case 'pending':
-            return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+            return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
         case 'cancelled':
-            return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+            return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
         default:
-            return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+            return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
     }
 };
 
@@ -98,23 +97,23 @@ const getStatusText = (status: string) => {
 </script>
 
 <template>
-    <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div class="min-h-screen bg-background">
         <Head title="Detail rezervácie" />
 
         <!-- Navigation -->
-        <nav class="bg-white dark:bg-gray-800 shadow-sm">
+        <nav class="bg-card border-b border-sidebar-border/70 dark:border-sidebar-border">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-16">
                     <div class="flex items-center gap-4">
                         <Link
                             :href="eventRoutes.manage(props.event.url_slug).url"
-                            class="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                            class="text-sm text-muted-foreground hover:text-foreground transition-colors"
                         >
                             Správa podujatia
                         </Link>
                         <Link
                             :href="dashboard().url"
-                            class="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                            class="text-sm text-muted-foreground hover:text-foreground transition-colors"
                         >
                             Dashboard
                         </Link>
@@ -132,39 +131,39 @@ const getStatusText = (status: string) => {
                 <!-- Status Alert -->
                 <Alert
                     v-if="props.order.status === 'paid'"
-                    class="border-green-600 bg-green-200 dark:bg-green-900"
+                    class="border-green-600 bg-green-100 dark:bg-green-900/30"
                 >
-                    <AlertTitle class="text-green-800 dark:text-green-200">
+                    <AlertTitle class="text-green-800 dark:text-green-300">
                         <i class="fas fa-check-circle mr-2"></i>
                         Platná rezervácia
                     </AlertTitle>
-                    <AlertDescription class="text-green-700 dark:text-green-300">
+                    <AlertDescription class="text-green-700 dark:text-green-400">
                         Táto rezervácia je zaplatená a platná pre vstup.
                     </AlertDescription>
                 </Alert>
 
                 <Alert
                     v-else-if="props.order.status === 'pending'"
-                    class="border-yellow-600 bg-yellow-200 dark:bg-yellow-900"
+                    class="border-yellow-600 bg-yellow-100 dark:bg-yellow-900/30"
                 >
-                    <AlertTitle class="text-yellow-800 dark:text-yellow-200">
+                    <AlertTitle class="text-yellow-800 dark:text-yellow-300">
                         <i class="fas fa-exclamation-triangle mr-2"></i>
                         Čaká sa na platbu
                     </AlertTitle>
-                    <AlertDescription class="text-yellow-700 dark:text-yellow-300">
+                    <AlertDescription class="text-yellow-700 dark:text-yellow-400">
                         Táto objednávka ešte nebola zaplatená.
                     </AlertDescription>
                 </Alert>
 
                 <Alert
                     v-else-if="props.order.status === 'cancelled'"
-                    class="border-red-600 bg-red-200 dark:bg-red-900"
+                    class="border-red-600 bg-red-100 dark:bg-red-900/30"
                 >
-                    <AlertTitle class="text-red-800 dark:text-red-200">
+                    <AlertTitle class="text-red-800 dark:text-red-300">
                         <i class="fas fa-times-circle mr-2"></i>
                         Zrušená objednávka
                     </AlertTitle>
-                    <AlertDescription class="text-red-700 dark:text-red-300">
+                    <AlertDescription class="text-red-700 dark:text-red-400">
                         Táto objednávka bola zrušená a nie je platná pre vstup.
                     </AlertDescription>
                 </Alert>
@@ -173,14 +172,14 @@ const getStatusText = (status: string) => {
                     <!-- Left Column: Scanned Reservation & Order Details -->
                     <div class="space-y-6">
                         <!-- Scanned Reservation Card -->
-                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-                            <h2 class="text-2xl font-bold dark:text-white mb-4 flex items-center">
-                                <i class="fas fa-qrcode mr-2 text-blue-600"></i>
+                        <div class="bg-card rounded-lg border border-sidebar-border/70 dark:border-sidebar-border p-6">
+                            <h2 class="text-2xl font-bold text-foreground mb-4 flex items-center">
+                                <i class="fas fa-qrcode mr-2 text-muted-foreground"></i>
                                 Naskenovaná rezervácia
                             </h2>
-                            <div class="space-y-3 dark:text-white">
+                            <div class="space-y-3 text-foreground">
                                 <div class="flex items-center justify-center mb-4">
-                                    <div class="bg-white p-4 rounded-lg">
+                                    <div class="bg-white p-4 rounded-lg border border-sidebar-border/70">
                                         <QrcodeVue
                                             :value="props.reservation.qr_code"
                                             :size="150"
@@ -188,24 +187,24 @@ const getStatusText = (status: string) => {
                                     </div>
                                 </div>
                                 <p>
-                                    <strong class="text-gray-700 dark:text-gray-300">Miesto:</strong>
+                                    <strong class="text-muted-foreground">Miesto:</strong>
                                     <span class="text-xl font-bold ml-2">{{ props.reservation.seat_number }}</span>
                                 </p>
                                 <p>
-                                    <strong class="text-gray-700 dark:text-gray-300">Meno hosťa:</strong>
+                                    <strong class="text-muted-foreground">Meno hosťa:</strong>
                                     <span class="ml-2">{{ props.reservation.guest_name }}</span>
                                 </p>
                             </div>
                         </div>
 
                         <!-- Order Details -->
-                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-                            <h2 class="text-2xl font-bold dark:text-white mb-4">
+                        <div class="bg-card rounded-lg border border-sidebar-border/70 dark:border-sidebar-border p-6">
+                            <h2 class="text-2xl font-bold text-foreground mb-4">
                                 Informácie o objednávke
                             </h2>
-                            <div class="space-y-3 dark:text-white">
+                            <div class="space-y-3 text-foreground">
                                 <div>
-                                    <strong class="text-gray-700 dark:text-gray-300">Stav:</strong>
+                                    <strong class="text-muted-foreground">Stav:</strong>
                                     <span
                                         :class="[
                                             'ml-2 px-3 py-1 rounded-full text-sm font-semibold',
@@ -216,23 +215,23 @@ const getStatusText = (status: string) => {
                                     </span>
                                 </div>
                                 <p>
-                                    <strong class="text-gray-700 dark:text-gray-300">Meno:</strong>
+                                    <strong class="text-muted-foreground">Meno:</strong>
                                     <span class="ml-2">{{ props.order.name }}</span>
                                 </p>
                                 <p>
-                                    <strong class="text-gray-700 dark:text-gray-300">Email:</strong>
+                                    <strong class="text-muted-foreground">Email:</strong>
                                     <span class="ml-2">{{ props.order.email }}</span>
                                 </p>
                                 <p>
-                                    <strong class="text-gray-700 dark:text-gray-300">Telefón:</strong>
+                                    <strong class="text-muted-foreground">Telefón:</strong>
                                     <span class="ml-2">{{ props.order.phone }}</span>
                                 </p>
                                 <p>
-                                    <strong class="text-gray-700 dark:text-gray-300">Variabilný symbol:</strong>
+                                    <strong class="text-muted-foreground">Variabilný symbol:</strong>
                                     <span class="ml-2">{{ props.order.variable_symbol }}</span>
                                 </p>
                                 <p v-if="props.order.payment_note">
-                                    <strong class="text-gray-700 dark:text-gray-300">Poznámka:</strong>
+                                    <strong class="text-muted-foreground">Poznámka:</strong>
                                     <span class="ml-2">{{ props.order.payment_note }}</span>
                                 </p>
                             </div>
@@ -242,36 +241,36 @@ const getStatusText = (status: string) => {
                     <!-- Right Column: Order Summary -->
                     <div class="space-y-6">
                         <!-- Tickets -->
-                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-                            <h2 class="text-2xl font-bold dark:text-white mb-4">
+                        <div class="bg-card rounded-lg border border-sidebar-border/70 dark:border-sidebar-border p-6">
+                            <h2 class="text-2xl font-bold text-foreground mb-4">
                                 Vybrané lístky
                             </h2>
                             <div class="space-y-2">
                                 <div
                                     v-for="ticket in props.tickets"
                                     :key="'ticket-' + ticket.id"
-                                    class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700 last:border-0"
+                                    class="flex justify-between items-center py-2 border-b border-sidebar-border/50 last:border-0"
                                 >
-                                    <span class="dark:text-white">
+                                    <span class="text-foreground">
                                         {{ ticket.title }} × {{ ticket.amount }}
                                     </span>
-                                    <span class="font-semibold dark:text-white">
+                                    <span class="font-semibold text-foreground">
                                         {{ ticket.price * ticket.amount }} €
                                     </span>
                                 </div>
-                                <div class="flex justify-between items-center py-3 text-lg font-bold border-t-2 border-gray-300 dark:border-gray-600 mt-3">
-                                    <span class="dark:text-white">Celkom:</span>
-                                    <span class="dark:text-white">{{ totalPrice }} €</span>
+                                <div class="flex justify-between items-center py-3 text-lg font-bold border-t-2 border-sidebar-border mt-3">
+                                    <span class="text-foreground">Celkom:</span>
+                                    <span class="text-foreground">{{ totalPrice }} €</span>
                                 </div>
                             </div>
                         </div>
 
                         <!-- All Reservations in Order -->
-                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-                            <h2 class="text-2xl font-bold dark:text-white mb-4">
+                        <div class="bg-card rounded-lg border border-sidebar-border/70 dark:border-sidebar-border p-6">
+                            <h2 class="text-2xl font-bold text-foreground mb-4">
                                 Všetky miesta v objednávke
                             </h2>
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                            <p class="text-sm text-muted-foreground mb-4">
                                 Táto objednávka obsahuje celkom {{ props.reservations.length }}
                                 {{ props.reservations.length === 1 ? 'miesto' : props.reservations.length < 5 ? 'miesta' : 'miest' }}
                             </p>
@@ -280,20 +279,20 @@ const getStatusText = (status: string) => {
                                     v-for="res in props.reservations"
                                     :key="'res-' + res.id"
                                     :class="[
-                                        'p-3 rounded-lg border-2',
+                                        'p-3 rounded-lg border-2 transition-colors',
                                         res.id === props.reservation.id
-                                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
-                                            : 'border-gray-200 dark:border-gray-700'
+                                            ? 'border-foreground bg-accent'
+                                            : 'border-sidebar-border/50'
                                     ]"
                                 >
                                     <div class="flex items-center justify-between">
-                                        <div class="dark:text-white">
+                                        <div class="text-foreground">
                                             <span class="font-bold">Miesto {{ res.seat_number }}</span>
                                             <span class="mx-2">-</span>
                                             <span>{{ res.guest_name }}</span>
                                         </div>
                                         <div v-if="res.id === props.reservation.id">
-                                            <span class="text-xs bg-blue-600 text-white px-2 py-1 rounded">
+                                            <span class="text-xs bg-foreground text-background px-2 py-1 rounded">
                                                 Aktuálne
                                             </span>
                                         </div>
