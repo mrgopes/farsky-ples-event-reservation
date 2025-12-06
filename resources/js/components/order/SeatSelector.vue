@@ -46,12 +46,12 @@ function isReserved(idx: number): boolean {
   return Array.isArray(props.reservedSeats) && props.reservedSeats.includes(idx);
 }
 function reservedFill() {
-  return isDarkMode() ? '#2a2a2a' : '#9ca3af';
+  return '#fc2403';
 }
 function seatFill(selected: boolean, reserved: boolean) {
   if (reserved) return reservedFill();
   if (selected) return '#2563eb';
-  return isDarkMode() ? '#444' : '#e5e7eb';
+  return '#57ff75'; // Green for available seats
 }
 function seatStroke() {
   return isDarkMode() ? '#bbb' : '#333';
@@ -246,8 +246,7 @@ function drawSeats() {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const isDark = isDarkMode();
-  const seatColor = isDark ? '#444' : '#e5e7eb';
+  const seatColor = '#57ff75';
   const selectedColor = '#2563eb';
   const disabledColor = reservedFill();
   for (let row = 0; row < seatRows; row++) {
@@ -340,7 +339,7 @@ function handleCanvasClick(e: MouseEvent) {
   color: white;
   padding: 4px 8px;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 15px;
   pointer-events: none;
   transform: translateY(-100%);
   white-space: nowrap;
