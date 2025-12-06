@@ -30,6 +30,8 @@ interface Event {
     bank_account: string;
     multiple_reservations_per_ticket: boolean;
     background_image_path?: string | null;
+    logo_image_path?: string | null;
+    overline?: string | null;
 }
 
 const props = defineProps<{
@@ -77,8 +79,11 @@ const form = useForm({
     contact_phone: props.event.contact_phone || '',
     bank_account: props.event.bank_account,
     multiple_reservations_per_ticket: props.event.multiple_reservations_per_ticket,
+    overline: props.event.overline || '',
     background_image: null as File | null,
     remove_background_image: false,
+    logo: null as File | null,
+    remove_logo: false,
     _method: 'PUT',
 });
 
@@ -101,11 +106,29 @@ const handleFileChange = (e: any) => {
     }
 };
 
+const handleLogoChange = (e: any) => {
+    const target = e.target as HTMLInputElement;
+    if (target.files && target.files[0]) {
+        form.logo = target.files[0];
+        form.remove_logo = false;
+    }
+};
+
 const removeBackgroundImage = () => {
     form.background_image = null;
     form.remove_background_image = true;
     // Reset the actual file input element
     const fileInput = document.getElementById('background_image') as HTMLInputElement;
+    if (fileInput) {
+        fileInput.value = '';
+    }
+};
+
+const removeLogo = () => {
+    form.logo = null;
+    form.remove_logo = true;
+    // Reset the actual file input element
+    const fileInput = document.getElementById('logo') as HTMLInputElement;
     if (fileInput) {
         fileInput.value = '';
     }
@@ -118,35 +141,41 @@ const previewImageUrl = computed(() => {
     return '';
 });
 
-const submit = () => {
-    // If no file is selected, remove it from the form data to prevent sending null/empty files
-    if (!form.background_image) {
-        // Create a copy of form data without the background_image field
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { background_image: _, ...formDataWithoutImage } = form.data();
+const previewLogoUrl = computed(() => {
+    if (form.logo) {
+        return window.URL.createObjectURL(form.logo);
+    }
+    return '';
+});
 
-        router.post(`/event/${props.event.url_slug}`, formDataWithoutImage, {
-            preserveScroll: true,
-            onSuccess: () => {
-                // Reset file input on success
-                const fileInput = document.getElementById('background_image') as HTMLInputElement;
-                if (fileInput) {
-                    fileInput.value = '';
-                }
-            },
-        });
-    } else {
-        // Submit with file included
+const submit = () => {
+    // If files are selected, use forceFormData to handle multipart/form-data
+    if (form.background_image || form.logo) {
         form.post(`/event/${props.event.url_slug}`, {
             preserveScroll: true,
             forceFormData: true,
             onSuccess: () => {
-                // Reset file input on success
+                // Reset file inputs on success
                 form.background_image = null;
-                const fileInput = document.getElementById('background_image') as HTMLInputElement;
-                if (fileInput) {
-                    fileInput.value = '';
-                }
+                form.logo = null;
+                const bgInput = document.getElementById('background_image') as HTMLInputElement;
+                const logoInput = document.getElementById('logo') as HTMLInputElement;
+                if (bgInput) bgInput.value = '';
+                if (logoInput) logoInput.value = '';
+            },
+        });
+    } else {
+        // No files, just submit as regular form data
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { background_image: _, logo: __, ...formDataWithoutFiles } = form.data();
+
+        router.post(`/event/${props.event.url_slug}`, formDataWithoutFiles, {
+            preserveScroll: true,
+            onSuccess: () => {
+                const bgInput = document.getElementById('background_image') as HTMLInputElement;
+                const logoInput = document.getElementById('logo') as HTMLInputElement;
+                if (bgInput) bgInput.value = '';
+                if (logoInput) logoInput.value = '';
             },
         });
     }
@@ -165,6 +194,20 @@ const submit = () => {
                     <!-- Basic Information -->
                     <div class="space-y-4">
                         <h2 class="text-xl font-semibold">Základné informácie</h2>
+
+                        <div class="space-y-2">
+                            <Label for="overline">Nadpis (Overline)</Label>
+                            <Input
+                                id="overline"
+                                v-model="form.overline"
+                                placeholder="Sekundárny nadpis nad hlavným názvom"
+                                :class="{ 'border-red-500': form.errors.overline }"
+                            />
+                            <p class="text-xs text-gray-500">Voliteľný text, ktorý sa zobrazí nad hlavným názvom podujatia</p>
+                            <p v-if="form.errors.overline" class="text-sm text-red-500">
+                                {{ form.errors.overline }}
+                            </p>
+                        </div>
 
                         <div class="grid gap-4 md:grid-cols-2">
                             <div class="space-y-2">
@@ -442,6 +485,79 @@ const submit = () => {
                                     type="button"
                                     variant="outline"
                                     @click="form.background_image = null"
+                                    class="absolute top-2 right-2"
+                                >
+                                    Zrušiť
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Logo -->
+                    <div class="space-y-4">
+                        <h2 class="text-xl font-semibold">Logo</h2>
+
+                        <!-- Current Logo -->
+                        <div v-if="event.logo_image_path && !form.remove_logo" class="space-y-2">
+                            <Label>Aktuálne logo</Label>
+                            <div class="relative">
+                                <img
+                                    :src="`/storage/${event.logo_image_path}`"
+                                    alt="Logo podujatia"
+                                    class="h-24 w-full rounded-lg object-cover"
+                                />
+                                <Button
+                                    type="button"
+                                    variant="destructive"
+                                    @click="removeLogo"
+                                    class="absolute top-2 right-2"
+                                >
+                                    Odstrániť
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <Label>{{ event.logo_image_path && !form.remove_logo ? 'Nahradiť logo' : 'Nahrať logo' }}</Label>
+                            <input
+                                id="logo"
+                                type="file"
+                                accept="image/jpeg,image/png,image/jpg,image/webp"
+                                @change="handleLogoChange"
+                                class="hidden"
+                            />
+                            <Label
+                                for="logo"
+                                class="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 dark:bg-gray-800 dark:border-gray-600 p-6 text-center text-gray-500 dark:text-gray-400 transition-all hover:bg-gray-100 dark:hover:bg-gray-700 mt-2"
+                            >
+                                <svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                </svg>
+                                <span class="text-sm font-medium">
+                                    {{ form.logo ? 'Nové logo vybrané' : 'Kliknite pre výber loga' }}
+                                </span>
+                                <span class="text-xs text-gray-400 mt-1">
+                                    JPEG, PNG, JPG, WEBP (max. 5MB)
+                                </span>
+                            </Label>
+                            <p v-if="form.errors.logo" class="mt-2 text-sm text-red-500">
+                                {{ form.errors.logo }}
+                            </p>
+                        </div>
+
+                        <!-- Preview of New Logo -->
+                        <div v-if="form.logo" class="space-y-2">
+                            <Label>Náhľad nového loga</Label>
+                            <div class="relative">
+                                <img
+                                    :src="previewLogoUrl"
+                                    alt="Náhľad loga"
+                                    class="h-24 w-full rounded-lg object-cover"
+                                />
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    @click="form.logo = null"
                                     class="absolute top-2 right-2"
                                 >
                                     Zrušiť

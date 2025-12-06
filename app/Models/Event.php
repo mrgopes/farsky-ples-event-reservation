@@ -33,6 +33,8 @@ class Event extends Model
         'location_id',
         'multiple_reservations_per_ticket',
         'background_image_path',
+        'logo_image_path',
+        'overline',
     ];
 
     protected $casts = [

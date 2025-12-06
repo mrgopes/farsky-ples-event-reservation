@@ -43,7 +43,9 @@ const form = useForm({
     contact_phone: '',
     bank_account: '',
     multiple_reservations_per_ticket: false,
+    overline: '',
     background_image: null as File | null,
+    logo: null as File | null,
 });
 
 const generateSlug = () => {
@@ -61,6 +63,13 @@ const handleFileChange = (event: Event) => {
     const target = event.target as HTMLInputElement;
     if (target.files && target.files[0]) {
         form.background_image = target.files[0];
+    }
+};
+
+const handleLogoChange = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    if (target.files && target.files[0]) {
+        form.logo = target.files[0];
     }
 };
 
@@ -83,6 +92,20 @@ const submit = () => {
                     <!-- Basic Information -->
                     <div class="space-y-4">
                         <h2 class="text-xl font-semibold">Základné informácie</h2>
+
+                        <div class="space-y-2">
+                            <Label for="overline">Nadpis (Overline)</Label>
+                            <Input
+                                id="overline"
+                                v-model="form.overline"
+                                placeholder="Sekundárny nadpis nad hlavným názvom"
+                                :class="{ 'border-red-500': form.errors.overline }"
+                            />
+                            <p class="text-xs text-gray-500">Voliteľný text, ktorý sa zobrazí nad hlavným názvom podujatia</p>
+                            <p v-if="form.errors.overline" class="text-sm text-red-500">
+                                {{ form.errors.overline }}
+                            </p>
+                        </div>
 
                         <div class="grid gap-4 md:grid-cols-2">
                             <div class="space-y-2">
@@ -244,6 +267,23 @@ const submit = () => {
                             </p>
                             <p v-if="form.errors.background_image" class="text-sm text-red-500">
                                 {{ form.errors.background_image }}
+                            </p>
+                        </div>
+
+                        <div class="space-y-2">
+                            <Label for="logo">Logo podujatia</Label>
+                            <Input
+                                id="logo"
+                                type="file"
+                                accept="image/jpeg,image/png,image/jpg,image/webp"
+                                @change="handleLogoChange"
+                                :class="{ 'border-red-500': form.errors.logo }"
+                            />
+                            <p class="text-sm text-gray-500">
+                                Podporované formáty: JPEG, PNG, JPG, WEBP (max. 5MB)
+                            </p>
+                            <p v-if="form.errors.logo" class="text-sm text-red-500">
+                                {{ form.errors.logo }}
                             </p>
                         </div>
                     </div>

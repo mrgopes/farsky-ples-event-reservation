@@ -27,6 +27,8 @@ interface Event {
   multiple_reservations_per_ticket: boolean;
   description?: string;
   background_image_path?: string;
+  logo_image_path?: string;
+  overline?: string;
 }
 
 interface Location {
@@ -122,7 +124,26 @@ const backgroundImageUrl = computed(() => {
 <template>
     <EventLayout :background="backgroundImageUrl ?? undefined">
         <div class="flex flex-col gap-8">
-            <div>
+            <div v-if="props.event.logo_image_path != '' && props.event.logo_image_path != null" class="flex flex-col items-center">
+                <img
+                    :src="`/storage/${props.event.logo_image_path}`"
+                    alt="Event Logo"
+                    class="mb-4 max-h-48 object-contain"
+                />
+                <p class="dark:text-gray-200 font-bold mt-3">
+                    <span><i class="fas fa-calendar-alt mr-2"></i>{{ formattedStartTime }}</span>
+                    <span class="ml-4"><i class="fas fa-map-marker-alt mr-2"></i>{{ formattedLocation }}</span>
+                </p>
+            </div>
+            <div v-else-if="props.event.overline != '' && props.event.overline != null" class="text-center">
+                <p class="text-2xl dark:text-white font-medium mb-2">{{ props.event.overline }}</p>
+                <h1 class="dark:text-white text-6xl font-extrabold">{{ props.event.title }}</h1>
+                <p class="dark:text-gray-200 font-bold mt-3">
+                    <span><i class="fas fa-calendar-alt mr-2"></i>{{ formattedStartTime }}</span>
+                    <span class="ml-4"><i class="fas fa-map-marker-alt mr-2"></i>{{ formattedLocation }}</span>
+                </p>
+            </div>
+            <div v-else>
                 <h1 class="dark:text-white text-6xl font-extrabold">{{ props.event.title }}</h1>
                 <p class="dark:text-gray-200 font-bold mt-3">
                     <span><i class="fas fa-calendar-alt mr-2"></i>{{ formattedStartTime }}</span>
@@ -131,10 +152,9 @@ const backgroundImageUrl = computed(() => {
             </div>
 
             <div>
-                <h2 class="dark:text-white text-3xl font-bold">O akcii</h2>
                 <div
                     v-html="renderedDescription"
-                    class="mt-3 dark:text-gray-200 markdown-content"
+                    class="dark:text-gray-200 markdown-content"
                 ></div>
             </div>
 

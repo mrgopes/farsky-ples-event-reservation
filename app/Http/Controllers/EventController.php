@@ -44,6 +44,8 @@ class EventController extends Controller
             'bank_account' => 'required|string|max:255',
             'multiple_reservations_per_ticket' => 'boolean',
             'background_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,webp,svg|max:2048',
+            'overline' => 'nullable|string|max:255',
         ]);
 
         // If seats_total is not provided, infer it from the location
@@ -56,6 +58,12 @@ class EventController extends Controller
         $backgroundImagePath = null;
         if ($request->hasFile('background_image')) {
             $backgroundImagePath = $request->file('background_image')->store('events/backgrounds', 'public');
+        }
+
+        // Handle logo upload
+        $logoPath = null;
+        if ($request->hasFile('logo')) {
+            $logoPath = $request->file('logo')->store('events/logos', 'public');
         }
 
         $event = Event::create([
@@ -74,6 +82,8 @@ class EventController extends Controller
             'bank_account' => $validated['bank_account'],
             'multiple_reservations_per_ticket' => $validated['multiple_reservations_per_ticket'] ?? false,
             'background_image_path' => $backgroundImagePath,
+            'logo_image_path' => $logoPath,
+            'overline' => $validated['overline'] ?? null,
         ]);
 
 
@@ -231,6 +241,9 @@ class EventController extends Controller
             'multiple_reservations_per_ticket' => 'boolean',
             'background_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
             'remove_background_image' => 'boolean',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,webp,svg|max:2048',
+            'remove_logo' => 'boolean',
+            'overline' => 'nullable|string|max:255',
         ]);
 
         // Handle background image upload
@@ -253,6 +266,26 @@ class EventController extends Controller
             $backgroundImagePath = $request->file('background_image')->store('events/backgrounds', 'public');
         }
 
+        // Handle logo upload
+        $logoPath = $event->logo_image_path;
+
+        // If user wants to remove the logo
+        if ($request->boolean('remove_logo')) {
+            if ($logoPath) {
+                Storage::disk('public')->delete($logoPath);
+            }
+            $logoPath = null;
+        }
+
+        // If a new logo is uploaded
+        if ($request->hasFile('logo')) {
+            // Delete old logo if exists
+            if ($logoPath) {
+                Storage::disk('public')->delete($logoPath);
+            }
+            $logoPath = $request->file('logo')->store('events/logos', 'public');
+        }
+
         $event->update([
             'title' => $validated['title'],
             'url_slug' => $validated['url_slug'],
@@ -266,6 +299,8 @@ class EventController extends Controller
             'bank_account' => $validated['bank_account'],
             'multiple_reservations_per_ticket' => $validated['multiple_reservations_per_ticket'] ?? false,
             'background_image_path' => $backgroundImagePath,
+            'logo_image_path' => $logoPath,
+            'overline' => $validated['overline'] ?? null,
         ]);
 
         return redirect()->route('event.manage', $event->url_slug)
@@ -289,6 +324,7 @@ class EventController extends Controller
             'event' => array_merge($event->only([
                 'id',
                 'title',
+                'overline',
                 'start_time',
                 'url_slug',
                 'seats_total',
@@ -297,7 +333,8 @@ class EventController extends Controller
                 'user_id',
                 'description',
                 'multiple_reservations_per_ticket',
-                'background_image_path'
+                'background_image_path',
+                'logo_image_path'
             ])),
             'location' => $event->location,
             'tickets' => $tickets,
