@@ -41,7 +41,7 @@ Optionally, you may want to create a new user via `php artisan make:admin <name>
 
 ## Contributing
 Contributions are welcome! Please fork the repository and create a pull request with your changes.
-In case of issues feel free to open a pull request as well.
+In case of issues feel free to open an issue as well.
 
 ## License
 This project is licensed under the GPLv3 License. See the LICENSE file for details.
