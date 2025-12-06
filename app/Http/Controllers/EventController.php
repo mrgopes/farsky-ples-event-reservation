@@ -91,7 +91,8 @@ class EventController extends Controller
                 'location',
                 'tickets',
                 'orders.tickets',
-                'orders.reservations'
+                'orders.reservations',
+                'users' // Load collaborators
             ])
             ->firstOrFail();
 
@@ -115,8 +116,18 @@ class EventController extends Controller
         $eventData['user_role'] = $userRole;
         $eventData['reserved_seats'] = $event->computeReservedSeats();
 
+        // Get all users for the collaborator selection (only if owner)
+        $allUsers = [];
+        if ($userRole === 'owner') {
+            $allUsers = \App\Models\User::select('id', 'name', 'email')
+                ->where('id', '!=', $event->user_id)
+                ->orderBy('name')
+                ->get();
+        }
+
         return Inertia::render('EventManage', [
             'event' => $eventData,
+            'allUsers' => $allUsers,
         ]);
     }
 

@@ -17,7 +17,9 @@ import {
     TrashIcon,
     CheckIcon,
     XIcon,
-    ExternalLinkIcon
+    ExternalLinkIcon,
+    UsersIcon,
+    ShieldIcon
 } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -59,6 +61,15 @@ interface Order {
     reservations: Reservation[];
 }
 
+interface User {
+    id: number;
+    name: string;
+    email: string;
+    pivot?: {
+        role: 'manager' | 'staff';
+    };
+}
+
 interface Event {
     id: number;
     title: string;
@@ -77,10 +88,12 @@ interface Event {
     tickets: Ticket[];
     orders: Order[];
     reserved_seats: number;
+    users: User[];
 }
 
 const props = defineProps<{
     event: Event;
+    allUsers: User[];
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -105,10 +118,17 @@ const editingTicket = ref<Ticket | null>(null);
 const isOrderDetailsOpen = ref(false);
 const selectedOrder = ref<Order | null>(null);
 
+const isCollaboratorDialogOpen = ref(false);
+
 const ticketForm = useForm({
     title: '',
     price: '',
     reservations: '1',
+});
+
+const collaboratorForm = useForm({
+    user_id: '',
+    role: 'manager',
 });
 
 const openCreateDialog = () => {
@@ -157,6 +177,36 @@ const deleteTicket = (ticketId: number) => {
     }
 };
 
+const openCollaboratorDialog = () => {
+    collaboratorForm.reset();
+    collaboratorForm.clearErrors();
+    isCollaboratorDialogOpen.value = true;
+};
+
+const submitCollaborator = () => {
+    collaboratorForm.post(`/event/${props.event.url_slug}/collaborator`, {
+        preserveScroll: true,
+        onSuccess: () => {
+            isCollaboratorDialogOpen.value = false;
+            collaboratorForm.reset();
+        },
+    });
+};
+
+const updateCollaboratorRole = (userId: number, newRole: 'manager' | 'staff') => {
+    useForm({ role: newRole }).put(`/event/${props.event.url_slug}/collaborator/${userId}`, {
+        preserveScroll: true,
+    });
+};
+
+const removeCollaborator = (userId: number) => {
+    if (confirm('Naozaj chcete odstrániť tohto spolupracovníka?')) {
+        useForm({}).delete(`/event/${props.event.url_slug}/collaborator/${userId}`, {
+            preserveScroll: true,
+        });
+    }
+};
+
 const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('sk-SK', {
         year: 'numeric',
@@ -184,6 +234,17 @@ const getStatusBadge = (status: string) => {
             return { class: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300', label: 'Zrušená' };
         default:
             return { class: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300', label: status };
+    }
+};
+
+const getRoleBadge = (role: string) => {
+    switch (role) {
+        case 'manager':
+            return { class: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300', label: 'Manažér' };
+        case 'staff':
+            return { class: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300', label: 'Personál' };
+        default:
+            return { class: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300', label: role };
     }
 };
 
@@ -480,6 +541,63 @@ const getTotalTicketCount = (order: Order) => {
                 </div>
             </div>
 
+            <!-- Collaborators Section -->
+            <div class="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border p-6 bg-card">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-2xl font-bold">Spolupracovníci</h2>
+                    <Button
+                        @click="openCollaboratorDialog"
+                        class="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-white transition-all hover:bg-green-700"
+                    >
+                        <PlusIcon class="w-4 h-4" />
+                        Pridať spolupracovníka
+                    </Button>
+                </div>
+                <div v-if="event.users.length === 0" class="text-center py-8 text-muted-foreground">
+                    <UsersIcon class="w-12 h-12 mx-auto mb-3 opacity-50" />
+                    <p>Žiadni spolupracovníci</p>
+                </div>
+                <div v-else class="space-y-2">
+                    <div
+                        v-for="user in event.users"
+                        :key="user.id"
+                        class="flex items-center justify-between p-3 rounded-lg border border-sidebar-border/50 bg-muted/30"
+                    >
+                        <div class="flex items-center gap-3">
+                            <UserIcon class="w-5 h-5 text-muted-foreground" />
+                            <div>
+                                <p class="font-medium">{{ user.name }}</p>
+                                <p class="text-sm text-muted-foreground">{{ user.email }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span
+                                :class="getRoleBadge(user.pivot?.role || '').class"
+                                class="inline-block px-2 py-1 text-xs font-medium rounded-full"
+                            >
+                                {{ getRoleBadge(user.pivot?.role || '').label }}
+                            </span>
+                            <Button
+                                @click="updateCollaboratorRole(user.id, user.pivot?.role === 'manager' ? 'staff' : 'manager')"
+                                variant="outline"
+                                class="p-1.5"
+                                title="Zmeniť rolu"
+                            >
+                                <ShieldIcon class="w-4 h-4" />
+                            </Button>
+                            <Button
+                                @click="removeCollaborator(user.id)"
+                                variant="outline"
+                                class="p-1.5 text-red-600 hover:bg-red-600 hover:text-white"
+                                title="Odstrániť spolupracovníka"
+                            >
+                                <TrashIcon class="w-4 h-4" />
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Ticket Form Dialog -->
             <Dialog v-model:open="isDialogOpen">
                 <DialogContent>
@@ -544,6 +662,65 @@ const getTotalTicketCount = (order: Order) => {
                             class="px-4 py-2 cursor-pointer bg-blue-600 text-white transition-all hover:bg-blue-700"
                         >
                             Uložiť
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <!-- Collaborator Form Dialog -->
+            <Dialog v-model:open="isCollaboratorDialogOpen">
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>
+                            Pridať nového spolupracovníka
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div class="grid gap-4">
+                        <div>
+                            <Label for="user_id">Používateľ</Label>
+                            <select
+                                id="user_id"
+                                v-model="collaboratorForm.user_id"
+                                class="w-full p-2 text-sm rounded-md border focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                            >
+                                <option value="">Vyberte používateľa</option>
+                                <option
+                                    v-for="user in allUsers"
+                                    :key="user.id"
+                                    :value="user.id"
+                                >
+                                    {{ user.name }} ({{ user.email }})
+                                </option>
+                            </select>
+                            <p v-if="collaboratorForm.errors.user_id" class="mt-1 text-sm text-red-500">
+                                {{ collaboratorForm.errors.user_id }}
+                            </p>
+                        </div>
+                        <div>
+                            <Label for="role">Rola</Label>
+                            <select
+                                id="role"
+                                v-model="collaboratorForm.role"
+                                class="w-full p-2 text-sm rounded-md border focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                            >
+                                <option value="manager">Manažér</option>
+                                <option value="staff">Personál</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-2 mt-4">
+                        <Button
+                            @click="isCollaboratorDialogOpen = false"
+                            variant="outline"
+                            class="px-4 py-2 cursor-pointer"
+                        >
+                            Zrušiť
+                        </Button>
+                        <Button
+                            @click="submitCollaborator"
+                            class="px-4 py-2 cursor-pointer bg-blue-600 text-white transition-all hover:bg-blue-700"
+                        >
+                            Pridať
                         </Button>
                     </div>
                 </DialogContent>

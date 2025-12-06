@@ -3,6 +3,7 @@
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\CollaboratorController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\EventController;
@@ -41,6 +42,17 @@ Route::put('event/{event:url_slug}/ticket/{ticket}', [TicketController::class, '
 Route::delete('event/{event:url_slug}/ticket/{ticket}', [TicketController::class, 'destroy'])
     ->middleware(['auth', 'verified'])
     ->name('ticket.destroy');
+
+// Collaborator management routes
+Route::post('event/{event:url_slug}/collaborator', [CollaboratorController::class, 'store'])
+    ->middleware(['auth', 'verified'])
+    ->name('collaborator.store');
+Route::put('event/{event:url_slug}/collaborator/{user}', [CollaboratorController::class, 'update'])
+    ->middleware(['auth', 'verified'])
+    ->name('collaborator.update');
+Route::delete('event/{event:url_slug}/collaborator/{user}', [CollaboratorController::class, 'destroy'])
+    ->middleware(['auth', 'verified'])
+    ->name('collaborator.destroy');
 
 Route::post('event/{event:url_slug}/order', [OrderController::class, 'store'])->name('order.store');
 Route::get('event/{event:url_slug}/order', [OrderController::class, 'create'])->name('order.create');
