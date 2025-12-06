@@ -19,7 +19,10 @@ import {
     XIcon,
     ExternalLinkIcon,
     UsersIcon,
-    ShieldIcon
+    ShieldIcon,
+    ChevronLeftIcon,
+    ChevronRightIcon,
+    SearchIcon
 } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -263,13 +266,42 @@ const getTotalRevenue = () => {
         }, 0);
 };
 
-// Sort orders from newest to oldest
-const sortedOrders = computed(() => {
-    return [...props.event.orders]
-        // .filter(o => o.status !== 'cancelled') // exclude cancelled from the list
-        .sort((a, b) => {
-            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    });
+// Filter and Pagination States
+const searchQuery = ref('');
+const statusFilter = ref<'all' | 'paid' | 'pending' | 'cancelled'>('all');
+const currentPage = ref(1);
+const itemsPerPage = ref(5);
+
+// Computed property for filtered orders
+const filteredOrders = computed(() => {
+    let orders = props.event.orders;
+
+    // Filter by status
+    if (statusFilter.value !== 'all') {
+        orders = orders.filter(order => order.status === statusFilter.value);
+    }
+
+    // Filter by search query
+    if (searchQuery.value) {
+        orders = orders.filter(order => {
+            return order.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+                   order.email.toLowerCase().includes(searchQuery.value.toLowerCase());
+        });
+    }
+
+    return orders;
+});
+
+// Computed property for paginated orders
+const paginatedOrders = computed(() => {
+    const start = (currentPage.value - 1) * itemsPerPage.value;
+    const end = start + itemsPerPage.value;
+    return filteredOrders.value.slice(start, end);
+});
+
+// Total pages computed property
+const totalPages = computed(() => {
+    return Math.ceil(filteredOrders.value.length / itemsPerPage.value);
 });
 
 const openOrderDetails = (order: Order) => {
@@ -457,13 +489,42 @@ const getTotalTicketCount = (order: Order) => {
             <!-- Orders Section -->
             <div class="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border p-6 bg-card">
                 <h2 class="text-2xl font-bold mb-4">Objednávky</h2>
+
+                <!-- Filters -->
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+                    <!-- Search -->
+                    <div class="flex items-center gap-2 mb-2 md:mb-0">
+                        <SearchIcon class="w-5 h-5 text-muted-foreground" />
+                        <Input
+                            v-model="searchQuery"
+                            placeholder="Hľadať podľa mena alebo e-mailu"
+                            class="flex-1"
+                        />
+                    </div>
+
+                    <!-- Status Filter -->
+                    <div class="flex items-center gap-2">
+                        <Label for="statusFilter" class="sr-only">Filter podľa stavu</Label>
+                        <select
+                            id="statusFilter"
+                            v-model="statusFilter"
+                            class="p-2 text-sm rounded-md border focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                        >
+                            <option value="all">Všetky stavy</option>
+                            <option value="paid">Potvrdené</option>
+                            <option value="pending">Čakajúce</option>
+                            <option value="cancelled">Zrušené</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div v-if="event.orders.length === 0" class="text-center py-8 text-muted-foreground">
                     <MailIcon class="w-12 h-12 mx-auto mb-3 opacity-50" />
                     <p>Žiadne objednávky</p>
                 </div>
                 <div v-else class="space-y-2">
                     <div
-                        v-for="order in sortedOrders"
+                        v-for="order in paginatedOrders"
                         :key="order.id"
                         class="flex items-center gap-3 p-2 rounded-lg border border-sidebar-border/50 hover:border-sidebar-border transition-colors"
                     >
@@ -537,6 +598,33 @@ const getTotalTicketCount = (order: Order) => {
                                 Detail
                             </Button>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div v-if="totalPages > 1" class="mt-4">
+                    <div class="flex items-center justify-between">
+                        <Button
+                            @click="currentPage = Math.max(1, currentPage - 1)"
+                            variant="outline"
+                            class="px-4 py-2"
+                            :disabled="currentPage === 1"
+                        >
+                            <ChevronLeftIcon class="w-4 h-4" />
+                            Predchádzajúca
+                        </Button>
+                        <span class="text-sm text-muted-foreground">
+                            Stránka {{ currentPage }} z {{ totalPages }}
+                        </span>
+                        <Button
+                            @click="currentPage = Math.min(totalPages, currentPage + 1)"
+                            variant="outline"
+                            class="px-4 py-2"
+                            :disabled="currentPage === totalPages"
+                        >
+                            Ďalšia
+                            <ChevronRightIcon class="w-4 h-4" />
+                        </Button>
                     </div>
                 </div>
             </div>
