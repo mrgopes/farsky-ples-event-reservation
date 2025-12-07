@@ -472,7 +472,7 @@ const validateStepOne = () => {
                                 :for="'guest-' + seat"
                                 class="text-md text-black dark:text-white"
                                 >Hosť {{ idx + 1 }} (miesto
-                                {{ seat + 1 }})</Label
+                                {{ seat }})</Label
                             >
                             <Input
                                 :id="'guest-' + seat"
@@ -537,7 +537,7 @@ const validateStepOne = () => {
                                 v-for="(seat, idx) in selectedSeats"
                                 :key="'summary-seat-' + seat"
                             >
-                                Miesto {{ seat + 1 }} - {{ guestNames[idx] }}
+                                Miesto {{ seat }} - {{ guestNames[idx] }}
                             </li>
                         </ul>
                     </div>
