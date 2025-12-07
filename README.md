@@ -18,6 +18,7 @@ Under the hood it's a Laravel app with Vue.js frontend via Inertia.js.
 - Run `php artisan key:generate` to generate the application key.
 - Run `php artisan migrate:fresh` to create the database schema.
 - Run `npm run dev` to start the development server.
+- Run `php artisan serve` to start the Laravel server.
 - Access the application at `http://localhost:8000`.
 
 Optionally, you may want to create a new user via `php artisan make:admin <name>`
